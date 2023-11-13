@@ -13,7 +13,7 @@ print("Contents in csv file:")
 
 sampling_freq = 250
 
-
+#Plotter Function
 def plotter(csv_data):
 
     x_time = numpy.arange(0, len(csv_data) / sampling_freq, 1 / sampling_freq)
