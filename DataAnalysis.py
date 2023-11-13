@@ -7,8 +7,8 @@ filename = "IMUData.csv"
 
 plt.rcParams["figure.autolayout"] = True
 df = pd.read_csv(filename)
-Roll = df[df.columns[0]]
-Pitch = df[df.columns[1]]
+Pitch = df[df.columns[0]]
+Roll = df[df.columns[1]]
 print("Contents in csv file:")
 
 
@@ -46,4 +46,4 @@ def plotter(csv_data):
     plt.show()
 
 
-plotter(Roll)
+plotter(Pitch)
