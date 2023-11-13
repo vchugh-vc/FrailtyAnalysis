@@ -46,4 +46,4 @@ def plotter(csv_data):
     plt.show()
 
 
-plotter(Pitch)
+plotter(Roll)

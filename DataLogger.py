@@ -18,9 +18,11 @@ while total < DATA_POINTS:
 
     if total == 1:
         print("Starting Data")
-        print(time.time())
+        START = time.time()
+        print(START)
     if total == 2999:
-        print(time.time())
+        END = time.time()
+        print(END)
     getData = ser.readline()
     data = str(getData)
     formatted = data[2:-5]
@@ -30,3 +32,4 @@ while total < DATA_POINTS:
     total += 1
 
 print("Finished")
+duration = END - START
