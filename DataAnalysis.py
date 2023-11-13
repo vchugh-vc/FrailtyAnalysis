@@ -11,6 +11,7 @@ Roll = df[df.columns[0]]
 Pitch = df[df.columns[1]]
 print("Contents in csv file:")
 
+
 sampling_freq = 250
 
 # Plotter Function
