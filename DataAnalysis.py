@@ -1,21 +1,21 @@
 import pandas as pd
-from numpy.fft import fft, fftfreq, fftshift
+from numpy.fft import fft, fftfreq
 import numpy
 import matplotlib.pyplot as plt
 
 filename = "IMUData.csv"
 
 plt.rcParams["figure.autolayout"] = True
-df = pd.read_csv(filename, )
-Pitch = df[df.columns[0]]
-Roll = df[df.columns[1]]
+df = pd.read_csv(filename)
+Roll = df[df.columns[0]]
+Pitch = df[df.columns[1]]
 print("Contents in csv file:")
 
 sampling_freq = 250
 
-#Plotter Function
-def plotter(csv_data):
+# Plotter Function
 
+def plotter(csv_data):
     x_time = numpy.arange(0, len(csv_data) / sampling_freq, 1 / sampling_freq)
     fft_out = fft(csv_data)
     fft_freq = fftfreq(len(fft_out), 1 / sampling_freq)
@@ -46,5 +46,3 @@ def plotter(csv_data):
 
 
 plotter(Pitch)
-
-
