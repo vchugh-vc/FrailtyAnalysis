@@ -5,7 +5,7 @@ arduino_port = "/dev/tty.usbmodem142101"
 baud = 57600
 fileName = "IMUData.csv"
 
-DATA_POINTS = 3000
+DATA_POINTS = 500
 
 ser = serial.Serial(arduino_port, baud)
 print("Connected to Arduino port:" + arduino_port)
@@ -20,7 +20,7 @@ while total < DATA_POINTS:
         print("Starting Data")
         START = time.time()
         print(START)
-    if total == 2999:
+    if total == DATA_POINTS - 1 :
         END = time.time()
         print(END)
     getData = ser.readline()
