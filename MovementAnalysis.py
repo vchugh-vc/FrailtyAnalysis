@@ -5,14 +5,15 @@ import matplotlib.pyplot as plt
 filename = "IMUData.csv"
 plt.rcParams["figure.autolayout"] = True
 df = pd.read_csv(filename)
-Pitch = df[df.columns[0]]
-Roll = df[df.columns[1]]
-AccY = df[df.columns[2]]
-AccX = df[df.columns[3]]
-AccZ = df[df.columns[4]]
-GyroX = df[df.columns[5]]
-GyroY = df[df.columns[6]]
-GyroZ = df[df.columns[7]]
+print(df.columns)
+Pitch = df["Pitch"]
+Roll = df['Roll']
+AccY = df['AccY']
+AccX = df['AccX']
+AccZ = df['AccZ']
+GyroX = df['GyroX']
+GyroY = df['GyroY']
+GyroZ = df['GyroZ']
 print("Contents in csv file:")
 sampling_freq = 130
 x_time = numpy.arange(0, len(Roll) / sampling_freq, 1 / sampling_freq)
