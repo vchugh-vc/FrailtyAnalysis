@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy
 import matplotlib.pyplot as plt
+from scipy import signal
 
 filename = "IMUData.csv"
 plt.rcParams["figure.autolayout"] = True
@@ -17,6 +18,14 @@ GyroZ = df['GyroZ']
 print("Contents in csv file:")
 sampling_freq = 130
 x_time = numpy.arange(0, len(Roll) / sampling_freq, 1 / sampling_freq)
+
+def butter(axis):
+    sos = signal.butter(1,0.25,'hp',fs=sampling_freq,output='sos')
+    filtered = signal.sosfilt(sos,axis)
+    plt.plot(x_time, filtered, label='filtered')
+    plt.plot(x_time,axis, label='original')
+    plt.legend()
+    plt.show()
 
 def jerk_calc():
 
@@ -61,5 +70,4 @@ def visualiser():
     jerk_calc()
     plt.show()
 
-
-visualiser()
+butter(AccZ)
