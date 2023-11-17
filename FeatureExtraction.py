@@ -79,6 +79,7 @@ def minmax():
     print(f"Acc. Z | Min = {min_z} | Max = {max_z} | MinMax = {minmax_z} | Peak = {peak_z}")
 
 
+
 minmax()
 smv_data = signal_magnitude_vector()
 
