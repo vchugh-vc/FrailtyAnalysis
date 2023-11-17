@@ -19,12 +19,28 @@ print("Contents in csv file:")
 sampling_freq = 130
 x_time = numpy.arange(0, len(Roll) / sampling_freq, 1 / sampling_freq)
 
-def butter(axis):
+def butter1():
     sos = signal.butter(1,0.25,'hp',fs=sampling_freq,output='sos')
-    filtered = signal.sosfilt(sos,axis)
-    plt.plot(x_time, filtered, label='filtered')
-    plt.plot(x_time,axis, label='original')
+    filtered_x = signal.sosfilt(sos,AccX)
+    plt.subplot(3,1,1)
+    plt.plot(x_time, filtered_x, label='filtered')
+    plt.plot(x_time,AccX, label='original')
+    plt.xlim(2)
     plt.legend()
+
+    filtered_y = signal.sosfilt(sos,AccY)
+    plt.subplot(3,1,2)
+    plt.plot(x_time, filtered_y, label='filtered')
+    plt.plot(x_time,AccY, label='original')
+    plt.xlim(2)
+    plt.legend()
+
+    filtered_z = signal.sosfilt(sos,AccZ)
+    plt.subplot(3,1,3)
+    plt.plot(x_time, filtered_z, label='filtered')
+    plt.plot(x_time,AccZ, label='original')
+    plt.legend()
+    plt.xlim(2)
     plt.show()
 
 def jerk_calc():
@@ -70,4 +86,4 @@ def visualiser():
     jerk_calc()
     plt.show()
 
-butter(AccZ)
+butter1()
