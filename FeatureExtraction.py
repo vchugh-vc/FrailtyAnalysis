@@ -24,14 +24,12 @@ def filtration():
     plt.subplot(4, 1, 1)
     plt.plot(x_time, butter_x, label='filtered')
     plt.plot(x_time, IMUAccX, label='original')
-    plt.xlim(2)
     plt.legend()
 
     butter_y = signal.sosfilt(sos, IMUAccY)
     plt.subplot(4, 1, 2)
     plt.plot(x_time, butter_y, label='filtered')
     plt.plot(x_time, IMUAccY, label='original')
-    plt.xlim(2)
     plt.legend()
 
     butter_z = signal.sosfilt(sos, IMUAccZ)
@@ -39,24 +37,24 @@ def filtration():
     plt.plot(x_time, butter_z, label='filtered')
     plt.plot(x_time, IMUAccZ, label='original')
     plt.legend()
-    plt.xlim(2)
+
 
     return [butter_x, butter_y, butter_z]
 
 
 filtered_signals = filtration()
-AccX = filtered_signals[0]
-AccY = filtered_signals[1]
-AccZ = filtered_signals[2]
+AccX = filtered_signals[0][300:]
+AccY = filtered_signals[1][300:]
+AccZ = filtered_signals[2][300:]
 
+x_time_filtered = numpy.arange(0, len(AccZ) / sampling_freq, 1 / sampling_freq)
 
 def signal_magnitude_vector():
     signal_sum = pow(AccX, 2) + pow(AccY, 2) + pow(AccZ, 2)
     smv = numpy.sqrt(signal_sum)
     plt.subplot(4, 1, 4)
-    plt.plot(x_time, smv, label='filtered')
+    plt.plot(x_time_filtered, smv, label='filtered')
     plt.legend()
-    plt.xlim(2)
     plt.show()
     return smv
 
@@ -79,7 +77,38 @@ def minmax():
     print(f"Acc. Z | Min = {min_z} | Max = {max_z} | MinMax = {minmax_z} | Peak = {peak_z}")
 
 
+def spread_stats():
+    rms_x = numpy.sqrt(numpy.mean(AccX**2))
+    std_x = numpy.std(AccX)
+    var_x = numpy.var(AccX)
+    print(f"Acc. X | RMS = {rms_x} | STD = {std_x} | VAR = {var_x}")
+    rms_y = numpy.sqrt(numpy.mean(AccY ** 2))
+    std_y = numpy.std(AccY)
+    var_y = numpy.var(AccY)
+    print(f"Acc. Y | RMS = {rms_y} | STD = {std_y} | VAR = {var_y}")
+    rms_z = numpy.sqrt(numpy.mean(AccZ ** 2))
+    std_z = numpy.std(AccZ)
+    var_z = numpy.var(AccZ)
+    print(f"Acc. Z | RMS = {rms_z} | STD = {std_z} | VAR = {var_z}")
 
-minmax()
+
+def sliding_windows(data):
+
+    window_data = []
+    i = 0
+    while i < len(data):
+        print(data[i:i+100])
+        window_small = data[i:i+100]
+        window_data.append(window_small)
+        i += 50
+
+    print(len(window_data))
+
+    return window_data
+
+
+#minmax()
+#spread_stats()
 smv_data = signal_magnitude_vector()
+window_smv = sliding_windows(smv_data)
 
