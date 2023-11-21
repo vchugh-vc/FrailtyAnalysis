@@ -7,13 +7,16 @@ from FeaturesClass import Features
 filename = "IMUData.csv"
 plt.rcParams["figure.autolayout"] = True
 df = pd.read_csv(filename)
+Time = df['Time']
 IMUAccY = df['AccY']
 IMUAccX = df['AccX']
 IMUAccZ = df['AccZ']
 GyroX = df['GyroX']
 GyroY = df['GyroY']
 GyroZ = df['GyroZ']
-SAMPLE_FREQ = 130
+Time_diff = (df['Time'].iloc[-1] - df['Time'].iloc[0])
+SAMPLE_TIME = (Time_diff / len(Time))/1000
+SAMPLE_FREQ = numpy.round(1000* len(Time)/Time_diff)
 
 class DataPreparation:
 
@@ -59,13 +62,12 @@ class DataPreparation:
     def SMV_Window(self): # Creates Rolling Average for SMV
         self.SMV_roll = numpy.convolve(self.SMV, numpy.ones(25), 'valid') / 25
         self.movement()
-        print(self.SMV_roll)
 
 
     def movement(self):
         for i in range(2, len(self.SMV_roll)):
             if self.SMV_roll[i] > 0.01 and self.SMV_roll[i - 1] > 0.01 and self.SMV_roll[i - 2] < 0.01:
-                print(f"Started movement at {i}")
+                print(f"Started movement at {i*SAMPLE_TIME}")
             elif self.SMV_roll[i] < 0.01 and self.SMV_roll[i - 1] < 0.01 and self.SMV_roll[i - 2] > 0.01:
-                    print(f"Stopped movement at {i}")
+                    print(f"Stopped movement at {i*SAMPLE_TIME}")
 
