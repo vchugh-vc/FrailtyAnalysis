@@ -2,6 +2,7 @@ import pandas as pd
 import numpy
 import matplotlib.pyplot as plt
 from FeaturesClass import Features
+from FeatureExtraction2 import DataPreparation
 
 filename = "IMUData.csv"
 plt.rcParams["figure.autolayout"] = True
@@ -30,20 +31,15 @@ def signal_magnitude_vector():
 smv = signal_magnitude_vector()
 SMV = Features(smv, 'processed', 'SMV')
 
-def overview():
 
-    AccX.Accel_Graph()
-    AccY.Accel_Graph()
-    AccZ.Accel_Graph()
-    SMV.SMV_Graph()
-    plt.show()
 
 def detailed_visualiser():
-    AccX.sliding_windows()
+    AccZ.sliding_windows()
     plt.show()
 
-overview()
-detailed_visualiser()
+FilteredData = DataPreparation()
+
+
 
 
 
