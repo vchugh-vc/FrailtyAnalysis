@@ -55,19 +55,21 @@ class DataPreparation:
         plt.legend()
         plt.subplot(2, 1, 2)
         plt.plot(self.time_axis, self.SMV, label='SMV')
-        plt.plot(self.rolling_axis, self.SMV_roll, label="SMV Rolling")
+        plt.plot(self.time_axis, self.SMV_roll, label="SMV Rolling")
         plt.legend()
         plt.show()
 
     def SMV_Window(self): # Creates Rolling Average for SMV
-        self.SMV_roll = numpy.convolve(self.SMV, numpy.ones(25), 'valid') / 25
+        self.SMV_roll = numpy.convolve(self.SMV, numpy.ones(20), 'same') / 20
         self.movement()
+        print(len(self.SMV_roll))
+        print(len(self.SMV))
 
 
-    def movement(self):
+    def movement(self): # Detects when movement has started or stopped based on previous values (of rolling SMV) at a given threshold
         for i in range(2, len(self.SMV_roll)):
-            if self.SMV_roll[i] > 0.01 and self.SMV_roll[i - 1] > 0.01 and self.SMV_roll[i - 2] < 0.01:
+            if self.SMV_roll[i] > 0.015 and self.SMV_roll[i - 1] > 0.015 and self.SMV_roll[i - 2] < 0.015:
                 print(f"Started movement at {i*SAMPLE_TIME}")
-            elif self.SMV_roll[i] < 0.01 and self.SMV_roll[i - 1] < 0.01 and self.SMV_roll[i - 2] > 0.01:
+            elif self.SMV_roll[i] < 0.015 and self.SMV_roll[i - 1] < 0.015 and self.SMV_roll[i - 2] > 0.015:
                     print(f"Stopped movement at {i*SAMPLE_TIME}")
 
