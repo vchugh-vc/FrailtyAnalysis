@@ -30,6 +30,8 @@ class DataPreparation:
         self.AccZ = self.ButterFilter(IMUAccZ)
         self.SMV = self.SMV_Calc()
         self.SMV_roll = []
+        self.jerk = []
+        self.jerk_roll = []
         self.FilteredLength = len(self.AccX)
         self.time_axis = numpy.arange(0, self.FilteredLength / SAMPLE_FREQ,
                                       1 / SAMPLE_FREQ)
@@ -38,6 +40,7 @@ class DataPreparation:
                                          (self.FilteredLength / SAMPLE_FREQ) / len(
                                              self.SMV_roll))
 
+        self.jerk_calc()
         self.grapher()
 
     def ButterFilter(self, RawData):  # Butterworth Function Filter to remove gravity
@@ -45,20 +48,29 @@ class DataPreparation:
         ButterData = signal.sosfilt(sos, RawData)
         return ButterData[400:]
 
+    def jerk_calc(self):
+
+        self.jerk = numpy.gradient(self.SMV)
+        self.jerk_roll = numpy.convolve(self.jerk, numpy.ones(20), 'same') / 20
+
     def SMV_Calc(self):  # Calculates SMV from Acceleratio Data
         signal_sum = pow(self.AccX, 2) + pow(self.AccY, 2) + pow(self.AccZ, 2)
         return numpy.sqrt(signal_sum)
 
     def grapher(self):  # Graphs Acceleration and SMV
 
-        plt.subplot(2, 1, 1)
+        plt.subplot(3, 1, 1)
         plt.plot(self.time_axis, self.AccX, label="X")
         plt.plot(self.time_axis, self.AccY, label="Y")
         plt.plot(self.time_axis, self.AccZ, label="Z")
         plt.legend()
-        plt.subplot(2, 1, 2)
+        plt.subplot(3, 1, 2)
         plt.plot(self.time_axis, self.SMV, label='SMV')
         plt.plot(self.time_axis, self.SMV_roll, label="SMV Rolling")
+        plt.legend()
+        plt.subplot(3, 1, 3)
+        # plt.plot(self.time_axis, self.jerk, label='Jerk')
+        plt.plot(self.time_axis, self.jerk_roll, label="Jerk Rolling")
         plt.legend()
         plt.show()
 
@@ -79,10 +91,17 @@ class DataPreparation:
                 print(f"Stopped movement at {i * SAMPLE_TIME} : {i}")
                 stop.append(i)
 
-        self.SMV_Trimmed = self.SMV[start[0]:stop[0]]
-        self.AccX_Trimmed = self.AccX[start[0]:stop[0]]
-        self.AccY_Trimmed = self.AccY[start[0]:stop[0]]
-        self.AccZ_Trimmed = self.AccZ[start[0]:stop[0]]
+        value = 0
+        time_stamp = 0
+        for j in range(len(start)):
+            if (stop[j-1]-start[j-1]) > value:
+                value = stop[j-1]-start[j-1]
+                time_stamp = j-1
+        print(f"Duration {value}")
+        self.SMV_Trimmed = self.SMV[start[time_stamp]:stop[time_stamp]]
+        self.AccX_Trimmed = self.AccX[start[time_stamp]:stop[time_stamp]]
+        self.AccY_Trimmed = self.AccY[start[time_stamp]:stop[time_stamp]]
+        self.AccZ_Trimmed = self.AccZ[start[time_stamp]:stop[time_stamp]]
 
 
 class Features:
@@ -164,7 +183,7 @@ class Features:
         plt.figure(figsize=(10, 8))
         for i in range(len(labels)):
             for key, value in axis.items():
-                print(f"{key} {labels[i]} {value[labels[i]]} {i}")
+                # print(f"{key} {labels[i]} {value[labels[i]]} {i}")
                 plt.subplot(7, 1, i+1)
                 plt.plot(value[labels[i]], label=key)
                 plt.legend()
