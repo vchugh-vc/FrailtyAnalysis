@@ -5,7 +5,7 @@ arduino_port = "/dev/tty.usbmodem142101"
 baud = 57600
 fileName = "IMUData.csv"
 
-DATA_POINTS = 500
+DATA_POINTS = 1000
 
 ser = serial.Serial(arduino_port, baud)
 print("Connected to Arduino port:" + arduino_port)
@@ -20,6 +20,8 @@ while total < DATA_POINTS:
         print("Starting Data")
         START = time.time()
         print(START)
+    if total == 400:
+        print("Move")
     if total == DATA_POINTS - 1 :
         END = time.time()
         print(END)
@@ -33,3 +35,8 @@ while total < DATA_POINTS:
 
 print("Finished")
 duration = END - START
+
+from FeatureClass import DataPreparation, Features
+
+FilteredData = DataPreparation()
+DataFeatures = Features(FilteredData)
