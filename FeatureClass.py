@@ -2,7 +2,6 @@ import pandas as pd
 import numpy
 import matplotlib.pyplot as plt
 from scipy import signal
-from FeaturesClass import Features
 
 filename = "IMUData.csv"
 plt.rcParams["figure.autolayout"] = True
@@ -17,7 +16,6 @@ GyroZ = df['GyroZ']
 Time_diff = (df['Time'].iloc[-1] - df['Time'].iloc[0])
 SAMPLE_TIME = (Time_diff / len(Time)) / 1000
 SAMPLE_FREQ = numpy.round(1000 * len(Time) / Time_diff)
-dict_struct = {'max': [], 'min': [], 'minmax': [], 'peak': [], 'rms': [], 'std': [], 'var': []}
 
 
 class DataPreparation:
@@ -113,7 +111,7 @@ class Features:
         self.data_extraction(self.window_y, self.y_features)
         self.data_extraction(self.window_x, self.x_features)
 
-        self.features_graph(self.x_features)
+        self.features_graph()
 
     def graph_trimmed(self):  # graphs the sections that have been trimmed by the movement filter
 
@@ -159,12 +157,17 @@ class Features:
             if len(i) > 0:
                 self.minmax_spread(i, dictionary)
 
-    def features_graph(self, array):
+    def features_graph(self):
 
-        i = 1
-        for key, value in array.items():
-            plt.subplot(7,1,i)
-            plt.plot(value)
-            plt.ylabel(key)
-            i += 1
+        axis = {"x": self.x_features, "y": self.y_features, "z": self.z_features, "SMV": self.SMV_features}
+        labels = ['max','min','minmax','peak','rms','std','var']
+
+        for i in range(len(labels)):
+            for key, value in axis.items():
+                print(f"{key} {labels[i]} {value[labels[i]]} {i}")
+                plt.subplot(7, 1, i+1)
+                plt.plot(value[labels[i]], label=key)
+                plt.legend()
+
+
         plt.show()
