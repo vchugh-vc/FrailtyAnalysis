@@ -25,13 +25,15 @@ class DataPreparation:
         self.AccY_Trimmed = None
         self.AccZ_Trimmed = None
         self.SMV_Trimmed = None
+        self.Jerk_Trimmed = None
         self.AccX = self.ButterFilter(IMUAccX)
         self.AccY = self.ButterFilter(IMUAccY)
         self.AccZ = self.ButterFilter(IMUAccZ)
         self.SMV = self.SMV_Calc()
-        self.SMV_roll = []
         self.jerk = []
         self.jerk_roll = []
+        self.jerk_calc()
+        self.SMV_roll = []
         self.FilteredLength = len(self.AccX)
         self.time_axis = numpy.arange(0, self.FilteredLength / SAMPLE_FREQ,
                                       1 / SAMPLE_FREQ)
@@ -40,7 +42,7 @@ class DataPreparation:
                                          (self.FilteredLength / SAMPLE_FREQ) / len(
                                              self.SMV_roll))
 
-        self.jerk_calc()
+
         self.grapher()
 
     def ButterFilter(self, RawData):  # Butterworth Function Filter to remove gravity
@@ -63,15 +65,27 @@ class DataPreparation:
         plt.plot(self.time_axis, self.AccX, label="X")
         plt.plot(self.time_axis, self.AccY, label="Y")
         plt.plot(self.time_axis, self.AccZ, label="Z")
-        plt.legend()
+        plt.ylim(-1,1)
+        plt.xlabel("Time (s)")
+        plt.ylabel("Acceleration (g)")
+        plt.title("Acceleration (X,Y,Z)")
+        plt.legend(loc=1)
         plt.subplot(3, 1, 2)
         plt.plot(self.time_axis, self.SMV, label='SMV')
         plt.plot(self.time_axis, self.SMV_roll, label="SMV Rolling")
-        plt.legend()
+        plt.legend(loc=1)
+        plt.xlabel("Time (s)")
+        plt.ylabel("Acceleration (g)")
+        plt.title("Acceleration (SMV)")
+        plt.ylim(-0.2, 1)
         plt.subplot(3, 1, 3)
         # plt.plot(self.time_axis, self.jerk, label='Jerk')
-        plt.plot(self.time_axis, self.jerk_roll, label="Jerk Rolling")
-        plt.legend()
+        plt.plot(self.time_axis, self.jerk_roll, label="Jerk")
+        plt.legend(loc=1)
+        plt.ylim(-0.03, 0.03)
+        plt.xlabel("Time (s)")
+        plt.ylabel("Jerk (g/s)")
+        plt.title("Jerk (SMV)")
         plt.show()
 
     def SMV_Window(self):  # Creates Rolling Average for SMV
@@ -91,8 +105,12 @@ class DataPreparation:
                 print(f"Stopped movement at {i * SAMPLE_TIME} : {i}")
                 stop.append(i)
 
+        if len(stop) < 1:
+            stop.append(len(self.SMV_roll))
+
         value = 0
         time_stamp = 0
+
         for j in range(len(start)):
             if (stop[j-1]-start[j-1]) > value:
                 value = stop[j-1]-start[j-1]
@@ -102,6 +120,10 @@ class DataPreparation:
         self.AccX_Trimmed = self.AccX[start[time_stamp]:stop[time_stamp]]
         self.AccY_Trimmed = self.AccY[start[time_stamp]:stop[time_stamp]]
         self.AccZ_Trimmed = self.AccZ[start[time_stamp]:stop[time_stamp]]
+        self.Jerk_Trimmed = self.jerk_roll[start[time_stamp]:stop[time_stamp]]
+        print(len(self.Jerk_Trimmed))
+        print(len(self.AccX_Trimmed))
+
 
 
 class Features:
@@ -112,6 +134,7 @@ class Features:
         self.AccY = TrimmedData.AccY_Trimmed
         self.AccZ = TrimmedData.AccZ_Trimmed
         self.SMV = TrimmedData.SMV_Trimmed
+        self.Jerk = TrimmedData.Jerk_Trimmed
         self.trimmed_axis = numpy.arange(0, len(self.AccX) / SAMPLE_FREQ,
                                          1 / SAMPLE_FREQ)
         self.graph_trimmed()
@@ -131,26 +154,42 @@ class Features:
         self.data_extraction(self.window_x, self.x_features)
 
         self.features_graph()
+        self.features_graph2()
 
     def graph_trimmed(self):  # graphs the sections that have been trimmed by the movement filter
 
-        plt.subplot(2, 1, 1)
+        plt.subplot(3, 1, 1)
         plt.plot(self.trimmed_axis, self.AccX, label="X")
         plt.plot(self.trimmed_axis, self.AccY, label="Y")
         plt.plot(self.trimmed_axis, self.AccZ, label="Z")
-        plt.legend()
-        plt.subplot(2, 1, 2)
+        plt.ylim(-1, 1)
+        plt.xlabel("Time (s)")
+        plt.ylabel("Acceleration (g)")
+        plt.title("Acceleration (X, Y, Z)")
+        plt.legend(loc=1)
+        plt.subplot(3, 1, 2)
         plt.plot(self.trimmed_axis, self.SMV, label='SMV')
-        plt.legend()
+        plt.legend(loc=1)
+        plt.ylim(-0.2, 1.5)
+        plt.xlabel("Time (s)")
+        plt.ylabel("Acceleration (g)")
+        plt.title("Acceleration (SMV)")
+        plt.subplot(3, 1, 3)
+        plt.plot(self.trimmed_axis, self.Jerk, label='SMV')
+        plt.legend(loc=1)
+        plt.ylim(-0.03, 0.03)
+        plt.xlabel("Time (s)")
+        plt.ylabel("Jerk (g/s)")
+        plt.title("Jerk (SMV)")
         plt.show()
 
     def sliding_windows(self, data):  # Creates Sliding Windows from Filtered and Sliced Array
         i = 0
         window_array = []
         while i <= len(data):
-            window_small = data[i:i + 10]
+            window_small = data[i:i + 20]
             window_array.append(window_small)
-            i += 5
+            i += 10
         return window_array
 
     def minmax_spread(self, array, dictionary):  # Returns Min-Max Data of an Array
@@ -178,15 +217,64 @@ class Features:
 
     def features_graph(self):
 
-        axis = {"x": self.x_features, "y": self.y_features, "z": self.z_features, "SMV": self.SMV_features}
-        labels = ['max','min','minmax','peak','rms','std','var']
-        plt.figure(figsize=(10, 8))
-        for i in range(len(labels)):
-            for key, value in axis.items():
-                # print(f"{key} {labels[i]} {value[labels[i]]} {i}")
-                plt.subplot(7, 1, i+1)
-                plt.plot(value[labels[i]], label=key)
-                plt.legend()
-            plt.title(labels[i])
+        plt.subplot(3, 1, 1)
+        plt.plot(self.x_features['rms'], label="X")
+        plt.plot(self.y_features['rms'], label="Y")
+        plt.plot(self.z_features['rms'], label="Z")
+        plt.plot(self.SMV_features['rms'], label="SMV")
+        plt.ylim(-0.1, 0.5)
+        plt.title("RMS of Data")
+        plt.legend(loc=1)
+        plt.subplot(3, 1, 2)
+        plt.plot(self.x_features['var'], label="X")
+        plt.plot(self.y_features['var'], label="Y")
+        plt.plot(self.z_features['var'], label="Z")
+        plt.plot(self.SMV_features['var'], label="SMV")
+        plt.ylim(-0.1, 0.5)
+        plt.title("VAR of Data")
+        plt.legend(loc=1)
+        plt.subplot(3, 1, 3)
+        plt.plot(self.x_features['std'], label="X")
+        plt.plot(self.y_features['std'], label="Y")
+        plt.plot(self.z_features['std'], label="Z")
+        plt.plot(self.SMV_features['std'], label="SMV")
+        plt.ylim(-0.3, 0.5)
+        plt.title("STD of Data")
+        plt.legend(loc=1)
+        plt.show()
 
+    def features_graph2(self):
+
+        plt.subplot(4, 1, 1)
+        plt.plot(self.x_features['max'], label="X")
+        plt.plot(self.y_features['max'], label="Y")
+        plt.plot(self.z_features['max'], label="Z")
+        plt.plot(self.SMV_features['max'], label="SMV")
+        plt.ylim(-1, 1.5)
+        plt.title("Max of Data")
+        plt.legend(loc=1)
+        plt.subplot(4, 1, 2)
+        plt.plot(self.x_features['min'], label="X")
+        plt.plot(self.y_features['min'], label="Y")
+        plt.plot(self.z_features['min'], label="Z")
+        plt.plot(self.SMV_features['min'], label="SMV")
+        plt.ylim(-1, 1)
+        plt.title("Min of Data")
+        plt.legend(loc=1)
+        plt.subplot(4, 1, 3)
+        plt.plot(self.x_features['minmax'], label="X")
+        plt.plot(self.y_features['minmax'], label="Y")
+        plt.plot(self.z_features['minmax'], label="Z")
+        plt.plot(self.SMV_features['minmax'], label="SMV")
+        plt.ylim(-0.2, 1.5)
+        plt.title("MinMax of Data")
+        plt.legend(loc=1)
+        plt.subplot(4, 1, 4)
+        plt.plot(self.x_features['peak'], label="X")
+        plt.plot(self.y_features['peak'], label="Y")
+        plt.plot(self.z_features['peak'], label="Z")
+        plt.plot(self.SMV_features['peak'], label="SMV")
+        plt.ylim(-0.2, 1)
+        plt.title("Peak of Data")
+        plt.legend(loc=1)
         plt.show()
