@@ -161,13 +161,13 @@ class Features:
 
         axis = {"x": self.x_features, "y": self.y_features, "z": self.z_features, "SMV": self.SMV_features}
         labels = ['max','min','minmax','peak','rms','std','var']
-
+        plt.figure(figsize=(10, 8))
         for i in range(len(labels)):
             for key, value in axis.items():
                 print(f"{key} {labels[i]} {value[labels[i]]} {i}")
                 plt.subplot(7, 1, i+1)
                 plt.plot(value[labels[i]], label=key)
                 plt.legend()
-
+            plt.title(labels[i])
 
         plt.show()
