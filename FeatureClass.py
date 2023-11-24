@@ -16,6 +16,7 @@ GyroZ = df['GyroZ']
 Time_diff = (df['Time'].iloc[-1] - df['Time'].iloc[0])
 SAMPLE_TIME = (Time_diff / len(Time)) / 1000
 SAMPLE_FREQ = numpy.round(1000 * len(Time) / Time_diff)
+print(SAMPLE_FREQ)
 
 
 class DataPreparation:
@@ -35,7 +36,7 @@ class DataPreparation:
         self.jerk_calc()
         self.SMV_roll = []
         self.FilteredLength = len(self.AccX)
-        self.time_axis = numpy.arange(0, self.FilteredLength / SAMPLE_FREQ,
+        self.time_axis = numpy.arange(0, (self.FilteredLength / SAMPLE_FREQ),
                                       1 / SAMPLE_FREQ)
         self.SMV_Window()
         self.rolling_axis = numpy.arange(0, self.FilteredLength / SAMPLE_FREQ,
@@ -105,8 +106,9 @@ class DataPreparation:
                 print(f"Stopped movement at {i * SAMPLE_TIME} : {i}")
                 stop.append(i)
 
-        if len(stop) < 1:
-            stop.append(len(self.SMV_roll))
+        stop.append(len(self.SMV_roll))
+        if len(start) < 1:
+            start.append(0)
 
         value = 0
         time_stamp = 0
@@ -158,6 +160,10 @@ class Features:
 
     def graph_trimmed(self):  # graphs the sections that have been trimmed by the movement filter
 
+        if (len(self.trimmed_axis)) > len(self.AccX):
+            last = len(self.trimmed_axis) - 1
+            self.trimmed_axis = self.trimmed_axis[:last]
+            print(f"New Axis {len(self.trimmed_axis)} Data {len(self.AccX)}")
         plt.subplot(3, 1, 1)
         plt.plot(self.trimmed_axis, self.AccX, label="X")
         plt.plot(self.trimmed_axis, self.AccY, label="Y")
@@ -198,8 +204,8 @@ class Features:
         minmax_data = max_data - min_data
         peak_data = max(max_data, min_data)
         rms_data = numpy.sqrt(numpy.mean(array ** 2))
-        std_data = numpy.std(array)
-        var_data = numpy.var(array)
+        std_data = numpy.nanstd(array)
+        var_data = numpy.nanvar(array)
 
         dictionary['max'].append(max_data)
         dictionary['min'].append(min_data)
@@ -230,7 +236,7 @@ class Features:
         plt.plot(self.y_features['var'], label="Y")
         plt.plot(self.z_features['var'], label="Z")
         plt.plot(self.SMV_features['var'], label="SMV")
-        plt.ylim(-0.1, 0.5)
+        plt.ylim(-0.005, 0.03)
         plt.title("VAR of Data")
         plt.legend(loc=1)
         plt.subplot(3, 1, 3)
@@ -238,7 +244,7 @@ class Features:
         plt.plot(self.y_features['std'], label="Y")
         plt.plot(self.z_features['std'], label="Z")
         plt.plot(self.SMV_features['std'], label="SMV")
-        plt.ylim(-0.3, 0.5)
+        plt.ylim(-0.05, 0.15)
         plt.title("STD of Data")
         plt.legend(loc=1)
         plt.show()
