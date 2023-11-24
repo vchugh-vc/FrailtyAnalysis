@@ -1,4 +1,4 @@
-from FeatureExtraction2 import DataPreparation, Features
+from FeatureClass import DataPreparation, Features
 
 sampling_freq = 130
 
