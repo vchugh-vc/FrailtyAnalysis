@@ -16,7 +16,6 @@ GyroZ = df['GyroZ']
 Time_diff = (df['Time'].iloc[-1] - df['Time'].iloc[0])
 SAMPLE_TIME = (Time_diff / len(Time)) / 1000
 SAMPLE_FREQ = numpy.round(1000 * len(Time) / Time_diff)
-print(SAMPLE_FREQ)
 
 
 class DataPreparation:
@@ -98,11 +97,11 @@ class DataPreparation:
         # given threshold
         start = []  # used for if there are multiple start stops in a movement pattern
         stop = []
-        for i in range(2, len(self.SMV_roll)):
-            if self.SMV_roll[i] > 0.015 > self.SMV_roll[i - 2] and self.SMV_roll[i - 1] > 0.015:
+        for i in range(3, len(self.SMV_roll)):
+            if self.SMV_roll[i] > 0.015 > self.SMV_roll[i - 3] and self.SMV_roll[i - 2] > 0.015 and self.SMV_roll[i - 1] > 0.015:
                 print(f"Started movement at {i * SAMPLE_TIME} : {i}")
                 start.append(i)
-            elif self.SMV_roll[i] < 0.015 < self.SMV_roll[i - 2] and self.SMV_roll[i - 1] < 0.015:
+            elif self.SMV_roll[i] < 0.015 < self.SMV_roll[i - 3] and self.SMV_roll[i - 2] < 0.015 and self.SMV_roll[i - 1] < 0.015:
                 print(f"Stopped movement at {i * SAMPLE_TIME} : {i}")
                 stop.append(i)
 
@@ -117,14 +116,11 @@ class DataPreparation:
             if (stop[j-1]-start[j-1]) > value:
                 value = stop[j-1]-start[j-1]
                 time_stamp = j-1
-        print(f"Duration {value}")
         self.SMV_Trimmed = self.SMV[start[time_stamp]:stop[time_stamp]]
         self.AccX_Trimmed = self.AccX[start[time_stamp]:stop[time_stamp]]
         self.AccY_Trimmed = self.AccY[start[time_stamp]:stop[time_stamp]]
         self.AccZ_Trimmed = self.AccZ[start[time_stamp]:stop[time_stamp]]
         self.Jerk_Trimmed = self.jerk_roll[start[time_stamp]:stop[time_stamp]]
-        print(len(self.Jerk_Trimmed))
-        print(len(self.AccX_Trimmed))
 
 
 
@@ -145,25 +141,27 @@ class Features:
         self.window_z = self.sliding_windows(self.AccZ)
         self.window_SMV = self.sliding_windows(self.SMV)
 
-        self.x_features = {'max': [], 'min': [], 'minmax': [], 'peak': [], 'rms': [], 'std': [], 'var': []}
-        self.y_features = {'max': [], 'min': [], 'minmax': [], 'peak': [], 'rms': [], 'std': [], 'var': []}
-        self.z_features = {'max': [], 'min': [], 'minmax': [], 'peak': [], 'rms': [], 'std': [], 'var': []}
-        self.SMV_features = {'max': [], 'min': [], 'minmax': [], 'peak': [], 'rms': [], 'std': [], 'var': []}
+        self.x_features = {}
+        self.y_features = {}
+        self.z_features = {}
+        self.SMV_features = {}
 
-        self.data_extraction(self.window_SMV, self.SMV_features)
-        self.data_extraction(self.window_z, self.z_features)
-        self.data_extraction(self.window_y, self.y_features)
-        self.data_extraction(self.window_x, self.x_features)
+        self.data_extraction(self.SMV, self.SMV_features)
+        self.data_extraction(self.AccZ, self.z_features)
+        self.data_extraction(self.AccY, self.y_features)
+        self.data_extraction(self.AccX, self.x_features)
 
-        self.features_graph()
-        self.features_graph2()
+        self.output = [self.x_features['max'], self.x_features['min'], self.x_features['minmax'], self.x_features['peak'],self.x_features['std'], self.x_features['rms'], self.x_features['var'], self.y_features['max'], self.y_features['min'], self.y_features['minmax'], self.y_features['peak'],self.y_features['std'], self.y_features['rms'], self.y_features['var'], self.z_features['max'], self.z_features['min'], self.z_features['minmax'], self.z_features['peak'],self.z_features['std'], self.z_features['rms'], self.z_features['var'],self.SMV_features['max'], self.SMV_features['min'], self.SMV_features['minmax'], self.SMV_features['peak'],self.SMV_features['std'], self.SMV_features['rms'], self.SMV_features['var']]
+
+        self.output2 = {}
+        self.dictionary_combine()
+
 
     def graph_trimmed(self):  # graphs the sections that have been trimmed by the movement filter
 
         if (len(self.trimmed_axis)) > len(self.AccX):
             last = len(self.trimmed_axis) - 1
             self.trimmed_axis = self.trimmed_axis[:last]
-            print(f"New Axis {len(self.trimmed_axis)} Data {len(self.AccX)}")
         plt.subplot(3, 1, 1)
         plt.plot(self.trimmed_axis, self.AccX, label="X")
         plt.plot(self.trimmed_axis, self.AccY, label="Y")
@@ -206,20 +204,35 @@ class Features:
         rms_data = numpy.sqrt(numpy.mean(array ** 2))
         std_data = numpy.nanstd(array)
         var_data = numpy.nanvar(array)
-
-        dictionary['max'].append(max_data)
-        dictionary['min'].append(min_data)
-        dictionary['minmax'].append(minmax_data)
-        dictionary['peak'].append(peak_data)
-        dictionary['rms'].append(rms_data)
-        dictionary['std'].append(std_data)
-        dictionary['var'].append(var_data)
+        dictionary['max'] = max_data
+        dictionary['min'] = min_data
+        dictionary['minmax'] = minmax_data
+        dictionary['peak'] = peak_data
+        dictionary['rms'] = rms_data
+        dictionary['std'] = std_data
+        dictionary['var'] = var_data
 
     def data_extraction(self, array, dictionary):
+        self.minmax_spread(array, dictionary)
+        print(dictionary)
 
-        for i in array:
-            if len(i) > 0:
-                self.minmax_spread(i, dictionary)
+    def dictionary_combine(self):
+
+        axis = [self.x_features, self.y_features, self.z_features, self.SMV_features]
+
+        for i in range(len(axis)):
+            for keys, values in axis[i].items():
+                if i == 0:
+                    label = 'X'
+                elif i == 1:
+                    label = 'Y'
+                elif i == 2:
+                    label = 'Z'
+                elif i == 3:
+                    label = 'SMV'
+                print(f"{label}{keys} : {values}")
+                self.output2[f"{label}{keys}"] = values
+
 
     def features_graph(self):
 
