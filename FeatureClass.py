@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy
 import matplotlib.pyplot as plt
+from numpy.fft import fft, fftfreq, rfft
 from scipy import signal
 
 filename = "IMUData.csv"
@@ -136,10 +137,7 @@ class Features:
         self.trimmed_axis = numpy.arange(0, len(self.AccX) / SAMPLE_FREQ,
                                          1 / SAMPLE_FREQ)
         self.graph_trimmed()
-        self.window_x = self.sliding_windows(self.AccX)
-        self.window_y = self.sliding_windows(self.AccY)
-        self.window_z = self.sliding_windows(self.AccZ)
-        self.window_SMV = self.sliding_windows(self.SMV)
+        self.FFTFreq = 0
 
         self.x_features = {}
         self.y_features = {}
@@ -151,7 +149,9 @@ class Features:
         self.data_extraction(self.AccY, self.y_features)
         self.data_extraction(self.AccX, self.x_features)
 
-        self.output = [self.x_features['max'], self.x_features['min'], self.x_features['minmax'], self.x_features['peak'],self.x_features['std'], self.x_features['rms'], self.x_features['var'], self.y_features['max'], self.y_features['min'], self.y_features['minmax'], self.y_features['peak'],self.y_features['std'], self.y_features['rms'], self.y_features['var'], self.z_features['max'], self.z_features['min'], self.z_features['minmax'], self.z_features['peak'],self.z_features['std'], self.z_features['rms'], self.z_features['var'],self.SMV_features['max'], self.SMV_features['min'], self.SMV_features['minmax'], self.SMV_features['peak'],self.SMV_features['std'], self.SMV_features['rms'], self.SMV_features['var']]
+        self.frequency_calc()
+
+        self.output = [self.x_features['max'], self.x_features['min'], self.x_features['minmax'], self.x_features['peak'], self.x_features['std'], self.x_features['rms'], self.x_features['var'], self.y_features['max'], self.y_features['min'], self.y_features['minmax'], self.y_features['peak'], self.y_features['std'], self.y_features['rms'], self.y_features['var'], self.z_features['max'], self.z_features['min'], self.z_features['minmax'], self.z_features['peak'], self.z_features['std'], self.z_features['rms'], self.z_features['var'], self.SMV_features['max'], self.SMV_features['min'], self.SMV_features['minmax'], self.SMV_features['peak'], self.SMV_features['std'], self.SMV_features['rms'], self.SMV_features['var'], self.FFTFreq]
 
         self.output2 = {}
         self.dictionary_combine()
@@ -233,6 +233,8 @@ class Features:
                 print(f"{label}{keys} : {values}")
                 self.output2[f"{label}{keys}"] = values
 
+        self.output2['Freq'] = self.FFTFreq
+
 
     def features_graph(self):
 
@@ -297,3 +299,29 @@ class Features:
         plt.title("Peak of Data")
         plt.legend(loc=1)
         plt.show()
+
+    def frequency_calc(self):
+
+        fft_out = fft(self.AccZ)
+        fft_freq = fftfreq(len(fft_out), 1 / SAMPLE_FREQ)
+
+        x_freq = numpy.abs(fft_freq)
+        y_fft = numpy.abs(fft_out)
+
+        # Plotting IMU angle through Time
+
+        # Plotting Frequency Amplitude (FFT)
+        plt.subplot(1, 1, 1)
+        plt.plot(x_freq, y_fft, 'r')
+        plt.xlabel("Frequency (Hz)")
+        plt.ylabel("Frequency Amplitude")
+        plt.xlim(right=20)
+        plt.xlim(left=-1)
+        plt.show()
+
+        # Prints the dominate frequency
+        y_max = numpy.argmax(y_fft)
+        x_max = x_freq[y_max]
+        print(f"Frequency is {x_max}")
+        self.FFTFreq = x_max
+
