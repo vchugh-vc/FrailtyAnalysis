@@ -17,7 +17,7 @@ GyroZ = df['GyroZ']
 Time_diff = (df['Time'].iloc[-1] - df['Time'].iloc[0])
 SAMPLE_TIME = (Time_diff / len(Time)) / 1000
 SAMPLE_FREQ = numpy.round(1000 * len(Time) / Time_diff)
-
+SENSE = 0.018
 
 class DataPreparation:
 
@@ -62,6 +62,9 @@ class DataPreparation:
 
     def grapher(self):  # Graphs Acceleration and SMV
 
+        if len(self.AccX) > len(self.time_axis):
+            self.time_axis = self.time_axis[:-1]
+
         plt.subplot(3, 1, 1)
         plt.plot(self.time_axis, self.AccX, label="X")
         plt.plot(self.time_axis, self.AccY, label="Y")
@@ -98,11 +101,11 @@ class DataPreparation:
         # given threshold
         start = []  # used for if there are multiple start stops in a movement pattern
         stop = []
-        for i in range(3, len(self.SMV_roll)):
-            if self.SMV_roll[i] > 0.015 > self.SMV_roll[i - 3] and self.SMV_roll[i - 2] > 0.015 and self.SMV_roll[i - 1] > 0.015:
+        for i in range(4, len(self.SMV_roll)):
+            if (self.SMV_roll[i] > SENSE > self.SMV_roll[i - 4] and self.SMV_roll[i - 2] > SENSE and self.SMV_roll[i - 1] > SENSE and self.SMV_roll[i - 3] > SENSE):
                 print(f"Started movement at {i * SAMPLE_TIME} : {i}")
                 start.append(i)
-            elif self.SMV_roll[i] < 0.015 < self.SMV_roll[i - 3] and self.SMV_roll[i - 2] < 0.015 and self.SMV_roll[i - 1] < 0.015:
+            elif self.SMV_roll[i] < SENSE < self.SMV_roll[i - 4] and self.SMV_roll[i - 2] < SENSE and self.SMV_roll[i - 1] < SENSE and self.SMV_roll[i - 3] < SENSE:
                 print(f"Stopped movement at {i * SAMPLE_TIME} : {i}")
                 stop.append(i)
 
@@ -134,6 +137,8 @@ class Features:
         self.AccZ = TrimmedData.AccZ_Trimmed
         self.SMV = TrimmedData.SMV_Trimmed
         self.Jerk = TrimmedData.Jerk_Trimmed
+
+        self.time = len(self.SMV) * SAMPLE_TIME
         self.trimmed_axis = numpy.arange(0, len(self.AccX) / SAMPLE_FREQ,
                                          1 / SAMPLE_FREQ)
         self.graph_trimmed()
@@ -302,7 +307,12 @@ class Features:
 
     def frequency_calc(self):
 
-        fft_out = fft(self.AccZ)
+        fft_array = []
+        mean = numpy.mean(self.SMV)
+
+        for i in self.SMV:
+            fft_array.append(i - mean)
+        fft_out = fft(fft_array)
         fft_freq = fftfreq(len(fft_out), 1 / SAMPLE_FREQ)
 
         x_freq = numpy.abs(fft_freq)
