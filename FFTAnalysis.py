@@ -4,11 +4,11 @@ import numpy
 import matplotlib.pyplot as plt
 from scipy import signal
 
-filename = "FeaturesData.csv"
+filename = "IMUData.csv"
 
 plt.rcParams["figure.autolayout"] = True
 df = pd.read_csv(filename)
-AccX = df[df.columns[1]]
+AccX = df[df.columns[6]]
 AccY = df[df.columns[2]]
 print("Contents in csv file:")
 
@@ -62,14 +62,14 @@ def butter_lowpass_filter(data, cutoff, fs, order=5):
     return y
 
 Freq = plotter(AccX)
-y = butter_lowpass_filter(AccX, 20, sampling_freq, 1)
+# y = butter_lowpass_filter(AccX, 20, sampling_freq, 1)
 
-plt.subplot(3, 1, 3)
-plt.plot(x_time, AccX, label='data')
-plt.plot(x_time, y, label='filtered data')
-plt.xlabel('Time [sec]')
-plt.grid()
-plt.legend()
+# plt.subplot(3, 1, 3)
+# plt.plot(x_time, AccX, label='data')
+# plt.plot(x_time, y, label='filtered data')
+# plt.xlabel('Time [sec]')
+# plt.grid()
+# plt.legend()
 plt.show()
 
 
