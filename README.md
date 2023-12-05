@@ -2,12 +2,14 @@
 
 Python Files used for Signal Processing (from an IMU) and for Extracting Features for Frailty Analysis
 
-**Data Logger** : File for Extracting data from IMU and exporting to a CSV (Pitch,Roll,AccY,AccX,AccZ,GyroX,GyroY,GyroZ)
+**DataLogger** : File for Extracting data from IMU and exporting to a CSV (Pitch,Roll,AccY,AccX,AccZ,GyroX,GyroY,GyroZ)
 
-**Movement Analysis** : Graphing Output of all IMU Data. Contains Jerk Calculation and Butterworth Filter.
+**FeatureClass** : Extracting Key Features from Data (Max, Min, Range, RMS, STD, VAR, SMV, Frequency) and Jerk for Analysis
 
-**FFT Analysis** : Fast Fourier Transform Function resulting in spectral analysis of IMU Data
+**SignalAnalysis** : Frailty Index Calculator (Processing Key Parameters from FeaturesClass)
 
-**Feature Extraction** : Extracting Key Features from Data (Max, Min, RMS, STD, VAR, SMV) and Sliding Windows Function for Analysis
+**FeatureExtraction** : Runs FeatureClass using existing IMU Data (from DataLogger) and outputs to CSV (Database for ML Training)
 
-**DTW Movement** : DTW Function to compare input (IMU) signals to a known patter and return Similarity Measurement
+**FFT Analysis** : (Legacy) Fast Fourier Transform Function resulting in spectral analysis of IMU Data
+
+**Movement Analysis** : (Legacy) Graphing Output of all IMU Data. Contains Jerk Calculation and Butterworth Filter.
