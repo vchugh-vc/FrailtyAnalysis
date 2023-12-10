@@ -17,7 +17,7 @@ GyroZ = df['GyroZ']
 Time_diff = (df['Time'].iloc[-1] - df['Time'].iloc[0])
 SAMPLE_TIME = (Time_diff / len(Time)) / 1000
 SAMPLE_FREQ = numpy.round(1000 * len(Time) / Time_diff)
-SENSE = 0.018
+SENSE = 0.019
 
 class DataPreparation:
 
@@ -35,6 +35,7 @@ class DataPreparation:
         self.jerk_roll = []
         self.jerk_calc()
         self.SMV_roll = []
+        self.Sample_Freq = SAMPLE_FREQ
         self.FilteredLength = len(self.AccX)
         self.time_axis = numpy.arange(0, (self.FilteredLength / SAMPLE_FREQ),
                                       1 / SAMPLE_FREQ)
@@ -116,7 +117,7 @@ class DataPreparation:
         value = 0
         time_stamp = 0
 
-        for j in range(len(start)):
+        for j in range(len(start)-1):
             if (stop[j-1]-start[j-1]) > value:
                 value = stop[j-1]-start[j-1]
                 time_stamp = j-1
@@ -155,6 +156,7 @@ class Features:
         self.data_extraction(self.AccX, self.x_features)
 
         self.frequency_calc()
+        self.freq_calc_2()
 
         self.output = [self.x_features['max'], self.x_features['min'], self.x_features['minmax'], self.x_features['peak'], self.x_features['std'], self.x_features['rms'], self.x_features['var'], self.y_features['max'], self.y_features['min'], self.y_features['minmax'], self.y_features['peak'], self.y_features['std'], self.y_features['rms'], self.y_features['var'], self.z_features['max'], self.z_features['min'], self.z_features['minmax'], self.z_features['peak'], self.z_features['std'], self.z_features['rms'], self.z_features['var'], self.SMV_features['max'], self.SMV_features['min'], self.SMV_features['minmax'], self.SMV_features['peak'], self.SMV_features['std'], self.SMV_features['rms'], self.SMV_features['var'], self.FFTFreq]
 
@@ -322,16 +324,34 @@ class Features:
 
         # Plotting Frequency Amplitude (FFT)
         plt.subplot(1, 1, 1)
-        plt.plot(x_freq, y_fft, 'r')
+        plt.plot(x_freq, y_fft, 'b')
         plt.xlabel("Frequency (Hz)")
         plt.ylabel("Frequency Amplitude")
         plt.xlim(right=20)
         plt.xlim(left=-1)
-        plt.show()
 
         # Prints the dominate frequency
         y_max = numpy.argmax(y_fft)
         x_max = x_freq[y_max]
         print(f"Frequency is {x_max}")
         self.FFTFreq = x_max
+
+
+    def freq_calc_2(self):
+
+        fft_out = fft(self.AccY)
+        fft_freq = fftfreq(len(fft_out), 1 / SAMPLE_FREQ)
+        x_freq = numpy.abs(fft_freq)
+        y_fft = numpy.abs(fft_out)
+
+        # Plotting IMU angle through Time
+
+        # Plotting Frequency Amplitude (FFT)
+        plt.subplot(1, 1, 1)
+        plt.plot(x_freq, y_fft, 'r')
+        plt.xlabel("Frequency (Hz)")
+        plt.ylabel("Frequency Amplitude")
+        plt.xlim(right=20)
+        plt.xlim(left=-1)
+        plt.show()
 
