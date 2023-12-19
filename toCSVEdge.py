@@ -21,10 +21,14 @@ df = pd.DataFrame({
     'accZ': accZ,
 })
 
-plt.plot(time, accX, label="X")
-plt.plot(time, accY, label="X")
-plt.plot(time, accZ, label="X")
+plt.plot(time,accX)
+plt.plot(time,accY)
+plt.plot(time,accZ)
 plt.show()
+
+
+
+df.to_csv("EdgeData/Up.1.csv", index=False)
 
 
 
