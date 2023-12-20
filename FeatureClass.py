@@ -18,6 +18,7 @@ Time_diff = (df['Time'].iloc[-1] - df['Time'].iloc[0])
 SAMPLE_TIME = (Time_diff / len(Time)) / 1000
 SAMPLE_FREQ = numpy.round(1000 * len(Time) / Time_diff)
 SENSE = 0.019
+print(f"Sample Time: {SAMPLE_TIME} at Sample Freq: {SAMPLE_FREQ}")
 
 class DataPreparation:
 
@@ -27,6 +28,9 @@ class DataPreparation:
         self.AccZ_Trimmed = None
         self.SMV_Trimmed = None
         self.Jerk_Trimmed = None
+        self.GyroX_Trimmed = None
+        self.GyroY_Trimmed = None
+        self.GyroZ_Trimmed = None
         self.AccX = self.ButterFilter(IMUAccX)
         self.AccY = self.ButterFilter(IMUAccY)
         self.AccZ = self.ButterFilter(IMUAccZ)
@@ -64,34 +68,37 @@ class DataPreparation:
     def grapher(self):  # Graphs Acceleration and SMV
 
         if len(self.AccX) > len(self.time_axis):
-            self.time_axis = self.time_axis[:-1]
+            self.time_axis = self.time_axis[:-3]
 
-        plt.subplot(3, 1, 1)
-        plt.plot(self.time_axis, self.AccX, label="X")
-        plt.plot(self.time_axis, self.AccY, label="Y")
-        plt.plot(self.time_axis, self.AccZ, label="Z")
-        plt.ylim(-1,1)
-        plt.xlabel("Time (s)")
-        plt.ylabel("Acceleration (g)")
-        plt.title("Acceleration (X,Y,Z)")
-        plt.legend(loc=1)
-        plt.subplot(3, 1, 2)
-        plt.plot(self.time_axis, self.SMV, label='SMV')
-        plt.plot(self.time_axis, self.SMV_roll, label="SMV Rolling")
-        plt.legend(loc=1)
-        plt.xlabel("Time (s)")
-        plt.ylabel("Acceleration (g)")
-        plt.title("Acceleration (SMV)")
-        plt.ylim(-0.2, 1)
-        plt.subplot(3, 1, 3)
-        # plt.plot(self.time_axis, self.jerk, label='Jerk')
-        plt.plot(self.time_axis, self.jerk_roll, label="Jerk")
-        plt.legend(loc=1)
-        plt.ylim(-0.03, 0.03)
-        plt.xlabel("Time (s)")
-        plt.ylabel("Jerk (g/s)")
-        plt.title("Jerk (SMV)")
-        plt.show()
+        if len(self.AccX) == len(self.time_axis):
+            plt.subplot(3, 1, 1)
+            plt.plot(self.time_axis, self.AccX, label="X")
+            plt.plot(self.time_axis, self.AccY, label="Y")
+            plt.plot(self.time_axis, self.AccZ, label="Z")
+            plt.ylim(-1,1)
+            plt.xlabel("Time (s)")
+            plt.ylabel("Acceleration (g)")
+            plt.title("Acceleration (X,Y,Z)")
+            plt.legend(loc=1)
+            plt.subplot(3, 1, 2)
+            plt.plot(self.time_axis, self.SMV, label='SMV')
+            plt.plot(self.time_axis, self.SMV_roll, label="SMV Rolling")
+            plt.legend(loc=1)
+            plt.xlabel("Time (s)")
+            plt.ylabel("Acceleration (g)")
+            plt.title("Acceleration (SMV)")
+            plt.ylim(-0.2, 1)
+            plt.subplot(3, 1, 3)
+            # plt.plot(self.time_axis, self.jerk, label='Jerk')
+            plt.plot(self.time_axis, self.jerk_roll, label="Jerk")
+            plt.legend(loc=1)
+            plt.ylim(-0.03, 0.03)
+            plt.xlabel("Time (s)")
+            plt.ylabel("Jerk (g/s)")
+            plt.title("Jerk (SMV)")
+            plt.legend(loc=1)
+            plt.show()
+
 
     def SMV_Window(self):  # Creates Rolling Average for SMV
         self.SMV_roll = numpy.convolve(self.SMV, numpy.ones(20), 'same') / 20
@@ -118,14 +125,20 @@ class DataPreparation:
         time_stamp = 0
 
         for j in range(len(start)-1):
+            print(j)
             if (stop[j-1]-start[j-1]) > value:
                 value = stop[j-1]-start[j-1]
                 time_stamp = j-1
+        print(time_stamp)
+
         self.SMV_Trimmed = self.SMV[start[time_stamp]:stop[time_stamp]]
         self.AccX_Trimmed = self.AccX[start[time_stamp]:stop[time_stamp]]
         self.AccY_Trimmed = self.AccY[start[time_stamp]:stop[time_stamp]]
         self.AccZ_Trimmed = self.AccZ[start[time_stamp]:stop[time_stamp]]
         self.Jerk_Trimmed = self.jerk_roll[start[time_stamp]:stop[time_stamp]]
+        self.GyroX_Trimmed = GyroX[start[time_stamp]:stop[time_stamp]]
+        self.GyroY_Trimmed = GyroY[start[time_stamp]:stop[time_stamp]]
+        self.GyroZ_Trimmed = GyroZ[start[time_stamp]:stop[time_stamp]]
 
 
 
@@ -138,6 +151,9 @@ class Features:
         self.AccZ = TrimmedData.AccZ_Trimmed
         self.SMV = TrimmedData.SMV_Trimmed
         self.Jerk = TrimmedData.Jerk_Trimmed
+        self.GyroX = TrimmedData.GyroX_Trimmed
+        self.GyroY = TrimmedData.GyroY_Trimmed
+        self.GyroZ = TrimmedData.GyroZ_Trimmed
 
         self.time = len(self.SMV) * SAMPLE_TIME
         self.trimmed_axis = numpy.arange(0, len(self.AccX) / SAMPLE_FREQ,
@@ -324,7 +340,7 @@ class Features:
 
         # Plotting Frequency Amplitude (FFT)
         plt.subplot(1, 1, 1)
-        plt.plot(x_freq, y_fft, 'b')
+        plt.plot(x_freq, y_fft, 'b', label = 'mean smv')
         plt.xlabel("Frequency (Hz)")
         plt.ylabel("Frequency Amplitude")
         plt.xlim(right=20)
@@ -339,7 +355,7 @@ class Features:
 
     def freq_calc_2(self):
 
-        fft_out = fft(self.AccY)
+        fft_out = fft(self.AccZ)
         fft_freq = fftfreq(len(fft_out), 1 / SAMPLE_FREQ)
         x_freq = numpy.abs(fft_freq)
         y_fft = numpy.abs(fft_out)
@@ -348,10 +364,11 @@ class Features:
 
         # Plotting Frequency Amplitude (FFT)
         plt.subplot(1, 1, 1)
-        plt.plot(x_freq, y_fft, 'r')
+        plt.plot(x_freq, y_fft, 'r', label = "normal single axis")
         plt.xlabel("Frequency (Hz)")
         plt.ylabel("Frequency Amplitude")
         plt.xlim(right=20)
         plt.xlim(left=-1)
+        plt.legend()
         plt.show()
 
