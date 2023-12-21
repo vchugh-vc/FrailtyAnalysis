@@ -11,9 +11,9 @@ Time = df['Time']
 IMUAccY = df['AccY']
 IMUAccX = df['AccX']
 IMUAccZ = df['AccZ']
-GyroX = df['GyroX']
-GyroY = df['GyroY']
-GyroZ = df['GyroZ']
+IMUGyroX = df['GyroX']
+IMUGyroY = df['GyroY']
+IMUGyroZ = df['GyroZ']
 Time_diff = (df['Time'].iloc[-1] - df['Time'].iloc[0])
 SAMPLE_TIME = (Time_diff / len(Time)) / 1000
 SAMPLE_FREQ = numpy.round(1000 * len(Time) / Time_diff)
@@ -34,6 +34,9 @@ class DataPreparation:
         self.AccX = self.ButterFilter(IMUAccX)
         self.AccY = self.ButterFilter(IMUAccY)
         self.AccZ = self.ButterFilter(IMUAccZ)
+        self.GyroX = IMUGyroX[400:]
+        self.GyroY = IMUGyroY[400:]
+        self.GyroZ = IMUGyroZ[400:]
         self.SMV = self.SMV_Calc()
         self.jerk = []
         self.jerk_roll = []
@@ -67,8 +70,10 @@ class DataPreparation:
 
     def grapher(self):  # Graphs Acceleration and SMV
 
-        if len(self.AccX) > len(self.time_axis):
-            self.time_axis = self.time_axis[:-3]
+        print(f"Acc = {len(self.AccX)} and Time {len(self.time_axis)}")
+        if len(self.AccX) < len(self.time_axis):
+            self.time_axis = self.time_axis[:-1]
+            print(f"Acc = {len(self.AccX)} and Time {len(self.time_axis)}")
 
         if len(self.AccX) == len(self.time_axis):
             plt.subplot(3, 1, 1)
@@ -136,9 +141,9 @@ class DataPreparation:
         self.AccY_Trimmed = self.AccY[start[time_stamp]:stop[time_stamp]]
         self.AccZ_Trimmed = self.AccZ[start[time_stamp]:stop[time_stamp]]
         self.Jerk_Trimmed = self.jerk_roll[start[time_stamp]:stop[time_stamp]]
-        self.GyroX_Trimmed = GyroX[start[time_stamp]:stop[time_stamp]]
-        self.GyroY_Trimmed = GyroY[start[time_stamp]:stop[time_stamp]]
-        self.GyroZ_Trimmed = GyroZ[start[time_stamp]:stop[time_stamp]]
+        self.GyroX_Trimmed = self.GyroX[start[time_stamp]:stop[time_stamp]]
+        self.GyroY_Trimmed = self.GyroY[start[time_stamp]:stop[time_stamp]]
+        self.GyroZ_Trimmed = self.GyroZ[start[time_stamp]:stop[time_stamp]]
 
 
 
