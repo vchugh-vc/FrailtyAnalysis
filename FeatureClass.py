@@ -134,7 +134,7 @@ class DataPreparation:
             if (stop[j-1]-start[j-1]) > value:
                 value = stop[j-1]-start[j-1]
                 time_stamp = j-1
-        print(time_stamp)
+        print(f"From {start[time_stamp]} to {stop[time_stamp]}")
 
         self.SMV_Trimmed = self.SMV[start[time_stamp]:stop[time_stamp]]
         self.AccX_Trimmed = self.AccX[start[time_stamp]:stop[time_stamp]]
