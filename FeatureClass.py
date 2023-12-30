@@ -17,7 +17,7 @@ IMUGyroZ = df['GyroZ']
 Time_diff = (df['Time'].iloc[-1] - df['Time'].iloc[0])
 SAMPLE_TIME = (Time_diff / len(Time)) / 1000
 SAMPLE_FREQ = numpy.round(1000 * len(Time) / Time_diff)
-SENSE = 0.019
+SENSE = 0.02
 print(f"Sample Time: {SAMPLE_TIME} at Sample Freq: {SAMPLE_FREQ}")
 
 class DataPreparation:
@@ -106,14 +106,17 @@ class DataPreparation:
 
 
     def SMV_Window(self):  # Creates Rolling Average for SMV
-        self.SMV_roll = numpy.convolve(self.SMV, numpy.ones(20), 'same') / 20
-        self.movement_filter()
+        self.SMV_roll = numpy.convolve(self.SMV, numpy.ones(15), 'same') / 15
+        # self.movement_filter()
+        self.movement_filter2()
 
     def movement_filter(
             self):  # Detects when movement has started or stopped based on previous values (of rolling SMV) at a
         # given threshold
+
         start = []  # used for if there are multiple start stops in a movement pattern
         stop = []
+        start.append(0)
         for i in range(4, len(self.SMV_roll)):
             if (self.SMV_roll[i] > SENSE > self.SMV_roll[i - 4] and self.SMV_roll[i - 2] > SENSE and self.SMV_roll[i - 1] > SENSE and self.SMV_roll[i - 3] > SENSE):
                 print(f"Started movement at {i * SAMPLE_TIME} : {i}")
@@ -125,6 +128,8 @@ class DataPreparation:
         stop.append(len(self.SMV_roll))
         if len(start) < 1:
             start.append(0)
+
+
 
         value = 0
         time_stamp = 0
@@ -145,6 +150,74 @@ class DataPreparation:
         self.GyroY_Trimmed = self.GyroY[start[time_stamp]:stop[time_stamp]]
         self.GyroZ_Trimmed = self.GyroZ[start[time_stamp]:stop[time_stamp]]
 
+    def movement_filter2(
+            self):  # Detects when movement has started or stopped based on previous values (of rolling SMV) at a
+        # given threshold
+
+
+        time_data = {}
+
+
+        for i in range(4, len(self.SMV_roll)):
+            if (self.SMV_roll[i] > SENSE > self.SMV_roll[i - 4] and self.SMV_roll[i - 2] > SENSE and self.SMV_roll[
+                i - 1] > SENSE and self.SMV_roll[i - 3] > SENSE):
+                print(f"2 Started movement at {i * SAMPLE_TIME} : {i}")
+                time_data[i] = 'start'
+
+            elif self.SMV_roll[i] < SENSE < self.SMV_roll[i - 4] and self.SMV_roll[i - 2] < SENSE and self.SMV_roll[
+                i - 1] < SENSE and self.SMV_roll[i - 3] < SENSE:
+                print(f"2 Stopped movement at {i * SAMPLE_TIME} : {i}")
+                time_data[i] = "stop"
+
+
+        longest_duration = 0
+
+        sequence = ['start','stop']
+        clips = []
+        diff_movements = {}
+
+        keys = list(time_data.keys())
+        values = list(time_data.values())
+
+        if 'start' in values:
+            print('start is there')
+        else:
+            time_data[0] = 'start'
+        if 'stop' in values:
+                print('stop is there')
+        else:
+            time_data[len(self.SMV_roll)] = 'stop'
+
+        keys = list(time_data.keys())
+        values = list(time_data.values())
+
+        for i in range(len(values) - len(sequence) + 1):
+            if values[i:i + len(sequence)] == sequence:
+                clips.append(keys[i:i + len(sequence)])
+
+        for i in range(min(len(clips), len(clips))): # calculates the longest period of movement to select
+            start_time = clips[i][0]
+            stop_time = clips[i][1]
+            duration = stop_time - start_time
+            diff_movements[i] = {'duration':duration, 'start':start_time, 'stop': stop_time}
+            if duration > longest_duration:
+                longest_duration = duration
+                movement_start = start_time
+                movement_stop = stop_time
+
+        print(diff_movements)
+        print(f"2 From {movement_start} to {movement_stop}")
+
+        # creates filtered data based on movement filter
+
+        self.SMV_Trimmed = self.SMV[movement_start:movement_stop]
+        self.AccX_Trimmed = self.AccX[movement_start:movement_stop]
+        self.AccY_Trimmed = self.AccY[movement_start:movement_stop]
+        self.AccZ_Trimmed = self.AccZ[movement_start:movement_stop]
+        self.Jerk_Trimmed = self.jerk_roll[movement_start:movement_stop]
+        self.GyroX_Trimmed = self.GyroX[movement_start:movement_stop]
+        self.GyroY_Trimmed = self.GyroY[movement_start:movement_stop]
+        self.GyroZ_Trimmed = self.GyroZ[movement_start:movement_stop]
 
 
 class Features:
