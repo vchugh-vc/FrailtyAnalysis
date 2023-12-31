@@ -205,6 +205,11 @@ class DataPreparation:
                 movement_start = start_time
                 movement_stop = stop_time
 
+        for k, v in diff_movements.items():
+            array = self.SMV[v['start']:v['stop']]
+            array_rms = numpy.sqrt(numpy.mean(array ** 2))
+            v['SMV'] = array_rms
+
         print(diff_movements)
         print(f"2 From {movement_start} to {movement_stop}")
 
