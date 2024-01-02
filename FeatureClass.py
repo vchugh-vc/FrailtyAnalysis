@@ -20,6 +20,7 @@ SAMPLE_FREQ = numpy.round(1000 * len(Time) / Time_diff)
 SENSE = 0.02
 print(f"Sample Time: {SAMPLE_TIME} at Sample Freq: {SAMPLE_FREQ}")
 
+
 class DataPreparation:
 
     def __init__(self):
@@ -51,7 +52,6 @@ class DataPreparation:
                                          (self.FilteredLength / SAMPLE_FREQ) / len(
                                              self.SMV_roll))
 
-
         self.grapher()
 
     def ButterFilter(self, RawData):  # Butterworth Function Filter to remove gravity
@@ -59,12 +59,12 @@ class DataPreparation:
         ButterData = signal.sosfilt(sos, RawData)
         return ButterData[400:]
 
-    def jerk_calc(self):
+    def jerk_calc(self):  # Jerk Calculation of movement (Acc. Derivative)
 
         self.jerk = numpy.gradient(self.SMV)
         self.jerk_roll = numpy.convolve(self.jerk, numpy.ones(20), 'same') / 20
 
-    def SMV_Calc(self):  # Calculates SMV from Acceleratio Data
+    def SMV_Calc(self):  # Calculates SMV from Acceleration Data
         signal_sum = pow(self.AccX, 2) + pow(self.AccY, 2) + pow(self.AccZ, 2)
         return numpy.sqrt(signal_sum)
 
@@ -80,7 +80,7 @@ class DataPreparation:
             plt.plot(self.time_axis, self.AccX, label="X")
             plt.plot(self.time_axis, self.AccY, label="Y")
             plt.plot(self.time_axis, self.AccZ, label="Z")
-            plt.ylim(-1,1)
+            plt.ylim(-1, 1)
             plt.xlabel("Time (s)")
             plt.ylabel("Acceleration (g)")
             plt.title("Acceleration (X,Y,Z)")
@@ -104,7 +104,6 @@ class DataPreparation:
             plt.legend(loc=1)
             plt.show()
 
-
     def SMV_Window(self):  # Creates Rolling Average for SMV
         self.SMV_roll = numpy.convolve(self.SMV, numpy.ones(15), 'same') / 15
         # self.movement_filter()
@@ -118,10 +117,12 @@ class DataPreparation:
         stop = []
         start.append(0)
         for i in range(4, len(self.SMV_roll)):
-            if (self.SMV_roll[i] > SENSE > self.SMV_roll[i - 4] and self.SMV_roll[i - 2] > SENSE and self.SMV_roll[i - 1] > SENSE and self.SMV_roll[i - 3] > SENSE):
+            if (self.SMV_roll[i] > SENSE > self.SMV_roll[i - 4] and self.SMV_roll[i - 2] > SENSE and self.SMV_roll[
+                i - 1] > SENSE and self.SMV_roll[i - 3] > SENSE):
                 print(f"Started movement at {i * SAMPLE_TIME} : {i}")
                 start.append(i)
-            elif self.SMV_roll[i] < SENSE < self.SMV_roll[i - 4] and self.SMV_roll[i - 2] < SENSE and self.SMV_roll[i - 1] < SENSE and self.SMV_roll[i - 3] < SENSE:
+            elif self.SMV_roll[i] < SENSE < self.SMV_roll[i - 4] and self.SMV_roll[i - 2] < SENSE and self.SMV_roll[
+                i - 1] < SENSE and self.SMV_roll[i - 3] < SENSE:
                 print(f"Stopped movement at {i * SAMPLE_TIME} : {i}")
                 stop.append(i)
 
@@ -129,16 +130,14 @@ class DataPreparation:
         if len(start) < 1:
             start.append(0)
 
-
-
         value = 0
         time_stamp = 0
 
-        for j in range(len(start)-1):
+        for j in range(len(start) - 1):
             print(j)
-            if (stop[j-1]-start[j-1]) > value:
-                value = stop[j-1]-start[j-1]
-                time_stamp = j-1
+            if (stop[j - 1] - start[j - 1]) > value:
+                value = stop[j - 1] - start[j - 1]
+                time_stamp = j - 1
         print(f"From {start[time_stamp]} to {stop[time_stamp]}")
 
         self.SMV_Trimmed = self.SMV[start[time_stamp]:stop[time_stamp]]
@@ -154,9 +153,7 @@ class DataPreparation:
             self):  # Detects when movement has started or stopped based on previous values (of rolling SMV) at a
         # given threshold
 
-
         time_data = {}
-
 
         for i in range(4, len(self.SMV_roll)):
             if (self.SMV_roll[i] > SENSE > self.SMV_roll[i - 4] and self.SMV_roll[i - 2] > SENSE and self.SMV_roll[
@@ -169,46 +166,46 @@ class DataPreparation:
                 print(f"2 Stopped movement at {i * SAMPLE_TIME} : {i}")
                 time_data[i] = "stop"
 
-
         longest_duration = 0
 
-        sequence = ['start','stop']
+        sequence = ['start', 'stop']
         clips = []
         diff_movements = {}
 
         keys = list(time_data.keys())
         values = list(time_data.values())
 
-        if 'start' in values:
+        if 'start' in values: # checks to make sure Start/Stop has been recorded
             print('start is there')
         else:
             time_data[0] = 'start'
         if 'stop' in values:
-                print('stop is there')
+            print('stop is there')
         else:
             time_data[len(self.SMV_roll)] = 'stop'
 
         keys = list(time_data.keys())
         values = list(time_data.values())
 
-        for i in range(len(values) - len(sequence) + 1):
+        for i in range(len(values) - len(sequence) + 1): # Checks for start-stop sequence
             if values[i:i + len(sequence)] == sequence:
                 clips.append(keys[i:i + len(sequence)])
 
-        for i in range(min(len(clips), len(clips))): # calculates the longest period of movement to select
+        for i in range(min(len(clips), len(clips))):  # calculates the longest period of movement to select
             start_time = clips[i][0]
             stop_time = clips[i][1]
             duration = stop_time - start_time
-            diff_movements[i] = {'duration':duration, 'start':start_time, 'stop': stop_time}
+            diff_movements[i] = {'duration': duration, 'start': start_time, 'stop': stop_time}
             if duration > longest_duration:
                 longest_duration = duration
                 movement_start = start_time
                 movement_stop = stop_time
 
-        for k, v in diff_movements.items():
+        for k, v in diff_movements.items(): # Calculates the SMV (RMS) value for each movement clip
             array = self.SMV[v['start']:v['stop']]
             array_rms = numpy.sqrt(numpy.mean(array ** 2))
-            v['SMV'] = array_rms
+            v['SMV'] = numpy.round(array_rms,3)
+            v['Movement'] = numpy.round(v['duration'] * v['SMV'],3)
 
         print(diff_movements)
         print(f"2 From {movement_start} to {movement_stop}")
@@ -257,11 +254,18 @@ class Features:
         self.frequency_calc()
         self.freq_calc_2()
 
-        self.output = [self.x_features['max'], self.x_features['min'], self.x_features['minmax'], self.x_features['peak'], self.x_features['std'], self.x_features['rms'], self.x_features['var'], self.y_features['max'], self.y_features['min'], self.y_features['minmax'], self.y_features['peak'], self.y_features['std'], self.y_features['rms'], self.y_features['var'], self.z_features['max'], self.z_features['min'], self.z_features['minmax'], self.z_features['peak'], self.z_features['std'], self.z_features['rms'], self.z_features['var'], self.SMV_features['max'], self.SMV_features['min'], self.SMV_features['minmax'], self.SMV_features['peak'], self.SMV_features['std'], self.SMV_features['rms'], self.SMV_features['var'], self.FFTFreq]
+        self.output = [self.x_features['max'], self.x_features['min'], self.x_features['minmax'],
+                       self.x_features['peak'], self.x_features['std'], self.x_features['rms'], self.x_features['var'],
+                       self.y_features['max'], self.y_features['min'], self.y_features['minmax'],
+                       self.y_features['peak'], self.y_features['std'], self.y_features['rms'], self.y_features['var'],
+                       self.z_features['max'], self.z_features['min'], self.z_features['minmax'],
+                       self.z_features['peak'], self.z_features['std'], self.z_features['rms'], self.z_features['var'],
+                       self.SMV_features['max'], self.SMV_features['min'], self.SMV_features['minmax'],
+                       self.SMV_features['peak'], self.SMV_features['std'], self.SMV_features['rms'],
+                       self.SMV_features['var'], self.FFTFreq]
 
         self.output2 = {}
         self.dictionary_combine()
-
 
     def graph_trimmed(self):  # graphs the sections that have been trimmed by the movement filter
 
@@ -340,7 +344,6 @@ class Features:
                 self.output2[f"{label}{keys}"] = values
 
         self.output2['Freq'] = self.FFTFreq
-
 
     def features_graph(self):
 
@@ -423,7 +426,7 @@ class Features:
 
         # Plotting Frequency Amplitude (FFT)
         plt.subplot(1, 1, 1)
-        plt.plot(x_freq, y_fft, 'b', label = 'mean smv')
+        plt.plot(x_freq, y_fft, 'b', label='mean smv')
         plt.xlabel("Frequency (Hz)")
         plt.ylabel("Frequency Amplitude")
         plt.xlim(right=20)
@@ -434,7 +437,6 @@ class Features:
         x_max = x_freq[y_max]
         print(f"Frequency is {x_max}")
         self.FFTFreq = x_max
-
 
     def freq_calc_2(self):
 
@@ -447,11 +449,10 @@ class Features:
 
         # Plotting Frequency Amplitude (FFT)
         plt.subplot(1, 1, 1)
-        plt.plot(x_freq, y_fft, 'r', label = "normal single axis")
+        plt.plot(x_freq, y_fft, 'r', label="normal single axis")
         plt.xlabel("Frequency (Hz)")
         plt.ylabel("Frequency Amplitude")
         plt.xlim(right=20)
         plt.xlim(left=-1)
         plt.legend()
         plt.show()
-
