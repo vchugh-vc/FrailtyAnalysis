@@ -11,6 +11,9 @@ FilteredData = DataPreparation()
 DataFeatures = Features(FilteredData)
 
 AccZ = DataFeatures.AccZ
+AccY = DataFeatures.AccY
+AccX = DataFeatures.AccX
+
 
 
 def DTW1():  # DTW Comparing an entire signal against pre-recorded signals and return the best fit
@@ -29,8 +32,8 @@ def DTW1():  # DTW Comparing an entire signal against pre-recorded signals and r
     print(f"Closest File was {name}")
 
 
-def DTW2():  # Compares a known lifting signal to different intervals of a movement
-    IMUFile = "EdgeData/Up-Mid-Stable-2.csv"
+def DTWUp():  # Compares a known lifting signal to different intervals of a movement
+    IMUFile = "EdgeData/Up-Mid-Stable-1.csv"
     df = pd.read_csv(IMUFile)
     DTWAccZ = df['accZ']
     i = 30
@@ -50,28 +53,38 @@ def DTW2():  # Compares a known lifting signal to different intervals of a movem
     plt.legend()
     plt.show()
 
+    return data_range
 
-def DTW3():  # Compares a known lifting signal to different intervals of a movement
-    IMUFile = "EdgeData/Down-Fast-Stable-1.csv"
+
+def DTWDown():  # Compares a known down signal to different intervals of a movement
+    IMUFile = "EdgeData/Down-Slow-Stable-2.csv"
     df = pd.read_csv(IMUFile)
     DTWAccZ = df['accZ']
-    i = 10
+    i = 30
     minimum = 100
     data_range = 0
-    while i < 300:
-        distance = dtw.distance(AccZ[:-i], DTWAccZ)
-        print(f"From 0:{i}, the distance is {distance}")
+    while i < 400:
+        distance = dtw.distance(AccZ[-i:], DTWAccZ)
+        print(f"From 0-{i}, the distance is {distance}")
         if distance <= minimum:
             minimum = distance
             data_range = i
-        i += 10
+        i += 30
 
     print(data_range)
     plt.plot(DTWAccZ, label='DTW')
-    plt.plot(AccZ[:-data_range], label='IMU')
+    plt.plot(AccZ[-data_range:], label='IMU')
     plt.legend()
     plt.show()
 
-DTW2()
+    return data_range
+
+up_end = DTWUp()
+down_start = len(AccZ) - DTWDown()
+
+plt.plot(AccX[up_end:down_start])
+plt.plot(AccY[up_end:down_start])
+plt.plot(AccZ[up_end:down_start])
+plt.show()
 
 
