@@ -15,8 +15,13 @@ IMUGyroX = df['GyroX']
 IMUGyroY = df['GyroY']
 IMUGyroZ = df['GyroZ']
 Time_diff = (df['Time'].iloc[-1] - df['Time'].iloc[0])
-SAMPLE_TIME = (Time_diff / len(Time)) / 1000
-SAMPLE_FREQ = numpy.round(1000 * len(Time) / Time_diff)
+
+# SAMPLE_TIME = (Time_diff / len(Time)) / 1000
+# SAMPLE_FREQ = numpy.round(1000 * len(Time) / Time_diff)
+
+SAMPLE_TIME = 0.0096
+SAMPLE_FREQ = 104
+
 SENSE = 0.02
 print(f"Sample Time: {SAMPLE_TIME} at Sample Freq: {SAMPLE_FREQ}")
 
@@ -33,10 +38,10 @@ class DataPreparation:
         self.GyroY_Trimmed = None
         self.GyroZ_Trimmed = None
         self.AccX = self.ButterFilter(IMUAccX)
-        self.AccY = self.ButterFilter(IMUAccY)
+        self.AccY = self.ButterFilter(IMUAccY)  # Gravity Filtered IMU Data
         self.AccZ = self.ButterFilter(IMUAccZ)
         self.GyroX = IMUGyroX[400:]
-        self.GyroY = IMUGyroY[400:]
+        self.GyroY = IMUGyroY[400:]  # Gyro Data (Sliced to match Acc length, post-gravity filtering)
         self.GyroZ = IMUGyroZ[400:]
         self.SMV = self.SMV_Calc()
         self.jerk = []
@@ -175,7 +180,7 @@ class DataPreparation:
         keys = list(time_data.keys())
         values = list(time_data.values())
 
-        if 'start' in values: # checks to make sure Start/Stop has been recorded
+        if 'start' in values:  # checks to make sure Start/Stop has been recorded
             print('start is there')
         else:
             time_data[0] = 'start'
@@ -187,7 +192,7 @@ class DataPreparation:
         keys = list(time_data.keys())
         values = list(time_data.values())
 
-        for i in range(len(values) - len(sequence) + 1): # Checks for start-stop sequence
+        for i in range(len(values) - len(sequence) + 1):  # Checks for start-stop sequence
             if values[i:i + len(sequence)] == sequence:
                 clips.append(keys[i:i + len(sequence)])
 
@@ -201,14 +206,15 @@ class DataPreparation:
                 movement_start = start_time
                 movement_stop = stop_time
 
-        for k, v in diff_movements.items(): # Calculates the SMV (RMS) value for each movement clip
+        for k, v in diff_movements.items():  # Calculates the SMV (RMS) value for each movement clip
             array = self.SMV[v['start']:v['stop']]
             array_rms = numpy.sqrt(numpy.mean(array ** 2))
-            v['SMV'] = numpy.round(array_rms,3)
-            v['Movement'] = numpy.round(v['duration'] * v['SMV'],3)
+            v['SMV'] = numpy.round(array_rms, 3)
+            v['Movement'] = numpy.round(v['duration'] * v['SMV'], 3)
 
         print(diff_movements)
-        print(f"2 From {movement_start} to {movement_stop}")
+        print(
+            f"2 From {movement_start * SAMPLE_TIME} ({movement_start}) to {movement_stop * SAMPLE_TIME} ({movement_stop})")
 
         # creates filtered data based on movement filter
 
