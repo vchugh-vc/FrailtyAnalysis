@@ -43,10 +43,10 @@ print("Created file")
 total = 0
 i = 0
 
-file.write("AccX,AccY,AccZ,GyroX,GyroY,GyroZ\n")
+file.write("AccX,AccY,AccZ,GyroX,GyroY,GyroZ,Roll,Pitch\n")
 
 while i < 500:  # Adds arbitrary data that to be Processed by the Butterworth Filter
-    file.write(f"0,0,1,0,0,0 \n")
+    file.write(f"0,0,1,0,0,0,0,0\n")
     i += 1
 
 

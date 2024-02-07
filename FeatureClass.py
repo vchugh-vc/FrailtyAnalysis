@@ -7,14 +7,16 @@ from scipy import signal
 filename = "IMUData.csv"
 plt.rcParams["figure.autolayout"] = True
 df = pd.read_csv(filename)
-Time = df['Time']
+# Time = df['Time']
 IMUAccY = df['AccY']
 IMUAccX = df['AccX']
 IMUAccZ = df['AccZ']
 IMUGyroX = df['GyroX']
 IMUGyroY = df['GyroY']
 IMUGyroZ = df['GyroZ']
-Time_diff = (df['Time'].iloc[-1] - df['Time'].iloc[0])
+IMURoll = df['Roll']
+IMUPitch = df['Pitch']
+# Time_diff = (df['Time'].iloc[-1] - df['Time'].iloc[0])
 
 # SAMPLE_TIME = (Time_diff / len(Time)) / 1000
 # SAMPLE_FREQ = numpy.round(1000 * len(Time) / Time_diff)
@@ -40,9 +42,11 @@ class DataPreparation:
         self.AccX = self.ButterFilter(IMUAccX)
         self.AccY = self.ButterFilter(IMUAccY)  # Gravity Filtered IMU Data
         self.AccZ = self.ButterFilter(IMUAccZ)
-        self.GyroX = IMUGyroX[400:]
-        self.GyroY = IMUGyroY[400:]  # Gyro Data (Sliced to match Acc length, post-gravity filtering)
-        self.GyroZ = IMUGyroZ[400:]
+        self.GyroX = IMUGyroX[500:]
+        self.GyroY = IMUGyroY[500:]  # Gyro Data (Sliced to match Acc length, post-gravity filtering)
+        self.GyroZ = IMUGyroZ[500:]
+        self.Roll = IMURoll[500:]
+        self.Pitch = IMUPitch[500:]
         self.SMV = self.SMV_Calc()
         self.jerk = []
         self.jerk_roll = []
@@ -62,7 +66,7 @@ class DataPreparation:
     def ButterFilter(self, RawData):  # Butterworth Function Filter to remove gravity
         sos = signal.butter(1, 0.25, 'hp', fs=SAMPLE_FREQ, output='sos')
         ButterData = signal.sosfilt(sos, RawData)
-        return ButterData[400:]
+        return ButterData[500:]
 
     def jerk_calc(self):  # Jerk Calculation of movement (Acc. Derivative)
 
@@ -153,6 +157,8 @@ class DataPreparation:
         self.GyroX_Trimmed = self.GyroX[start[time_stamp]:stop[time_stamp]]
         self.GyroY_Trimmed = self.GyroY[start[time_stamp]:stop[time_stamp]]
         self.GyroZ_Trimmed = self.GyroZ[start[time_stamp]:stop[time_stamp]]
+        self.Roll_Trimmed = self.Roll[start[time_stamp]:stop[time_stamp]]
+        self.Pitch_Trimmed = self.Pitch[start[time_stamp]:stop[time_stamp]]
 
     def movement_filter2(
             self):  # Detects when movement has started or stopped based on previous values (of rolling SMV) at a
@@ -226,6 +232,8 @@ class DataPreparation:
         self.GyroX_Trimmed = self.GyroX[movement_start:movement_stop]
         self.GyroY_Trimmed = self.GyroY[movement_start:movement_stop]
         self.GyroZ_Trimmed = self.GyroZ[movement_start:movement_stop]
+        self.Roll_Trimmed = self.Roll[movement_start:movement_stop]
+        self.Pitch_Trimmed = self.Pitch[movement_start:movement_stop]
 
 
 class Features:
@@ -240,6 +248,8 @@ class Features:
         self.GyroX = TrimmedData.GyroX_Trimmed
         self.GyroY = TrimmedData.GyroY_Trimmed
         self.GyroZ = TrimmedData.GyroZ_Trimmed
+        self.Roll = TrimmedData.Roll_Trimmed
+        self.Pitch = TrimmedData.Pitch_Trimmed
 
         self.time = len(self.SMV) * SAMPLE_TIME
         self.trimmed_axis = numpy.arange(0, len(self.AccX) / SAMPLE_FREQ,
@@ -272,6 +282,7 @@ class Features:
 
         self.output2 = {}
         self.dictionary_combine()
+        self.angle_graph()
 
     def graph_trimmed(self):  # graphs the sections that have been trimmed by the movement filter
 
@@ -461,4 +472,15 @@ class Features:
         plt.xlim(right=20)
         plt.xlim(left=-1)
         plt.legend()
+        plt.show()
+
+    def angle_graph(self):  # graphs the sections that have been trimmed by the movement filter
+
+        plt.plot(self.trimmed_axis, self.Roll, label="Roll")
+        plt.plot(self.trimmed_axis, self.Pitch, label="Pitch")
+        plt.ylim(-90, 90)
+        plt.xlabel("Time (s)")
+        plt.ylabel("Angle (*)")
+        plt.title("Angle (Pitch, Roll")
+        plt.legend(loc=1)
         plt.show()
