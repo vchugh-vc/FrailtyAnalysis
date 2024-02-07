@@ -7,6 +7,8 @@ port = 1883
 topic = "VarunChugh1"
 client_id = "VarunChugh"
 
+fileName = "IMUData.csv"
+
 def connect_mqtt():
     def on_connect(client, userdata, flags, rc):
         if rc == 0:
@@ -22,7 +24,9 @@ def connect_mqtt():
 
 def subscribe(client: mqtt_client):
     def on_message(client, userdata, msg):
-        print(f"Received `{msg.payload.decode()}` from `{msg.topic}` topic")
+        # print(f"Received `{msg.payload.decode()}` from `{msg.topic}` topic")
+        print(msg.payload.decode())
+        file.write(msg.payload.decode() + "\n")
 
     client.subscribe(topic)
     client.on_message = on_message
@@ -32,5 +36,18 @@ def run():
     client = connect_mqtt()
     subscribe(client)
     client.loop_forever()
+
+file = open(fileName, "w")
+print("Created file")
+
+total = 0
+i = 0
+
+file.write("AccX,AccY,AccZ,GyroX,GyroY,GyroZ\n")
+
+while i < 500:  # Adds arbitrary data that to be Processed by the Butterworth Filter
+    file.write(f"0,0,1,0,0,0 \n")
+    i += 1
+
 
 run()
