@@ -50,4 +50,15 @@ while i < 500:  # Adds arbitrary data that to be Processed by the Butterworth Fi
     i += 1
 
 
-run()
+
+def main():
+    try:
+        # Your main code here
+        print("Running main function...")
+        while True:
+            run()
+    except KeyboardInterrupt:
+        print("\nKeyboard interrupt received in main. Exiting...")
+
+if __name__ == "__main__":
+    main()
