@@ -33,7 +33,7 @@ def DTW1():  # DTW Comparing an entire signal against pre-recorded signals and r
 
 
 def DTWUp():  # Compares a known lifting signal to different intervals of a movement
-    IMUFile = "EdgeData/Up-Mid-Stable-1.csv"
+    IMUFile = "EdgeData/Up-Mid-Stable-2.csv"
     df = pd.read_csv(IMUFile)
     DTWAccZ = df['accZ']
     i = 30
@@ -87,4 +87,8 @@ plt.plot(AccY[up_end:down_start])
 plt.plot(AccZ[up_end:down_start])
 plt.show()
 
+movement_stamps = [0,up_end,down_start,len(AccZ)]
 
+for i in range(len(movement_stamps)-1):
+    print(f"{movement_stamps[i]} and {movement_stamps[i+1]}")
+print(movement_stamps)
