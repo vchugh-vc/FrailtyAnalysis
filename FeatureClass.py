@@ -190,13 +190,19 @@ class DataPreparation:
             print('start is there')
         else:
             time_data[0] = 'start'
+
         if 'stop' in values:
             print('stop is there')
         else:
             time_data[len(self.SMV_roll)] = 'stop'
 
-        keys = list(time_data.keys())
-        values = list(time_data.values())
+        time_data_sorted = sorted(time_data.items()) # used to sort the dictionary by time stamp (preserves order of data)
+
+        time_data_order = {key: value for key, value in time_data_sorted} #new ordered dictionary of time stamps
+
+        keys = list(time_data_order.keys())
+        values = list(time_data_order.values())
+
 
         for i in range(len(values) - len(sequence) + 1):  # Checks for start-stop sequence
             if values[i:i + len(sequence)] == sequence:
@@ -238,18 +244,18 @@ class DataPreparation:
 
 class Features:
 
-    def __init__(self, TrimmedData):
+    def __init__(self, ProcessedData):
 
-        self.AccX = TrimmedData.AccX_Trimmed
-        self.AccY = TrimmedData.AccY_Trimmed
-        self.AccZ = TrimmedData.AccZ_Trimmed
-        self.SMV = TrimmedData.SMV_Trimmed
-        self.Jerk = TrimmedData.Jerk_Trimmed
-        self.GyroX = TrimmedData.GyroX_Trimmed
-        self.GyroY = TrimmedData.GyroY_Trimmed
-        self.GyroZ = TrimmedData.GyroZ_Trimmed
-        self.Roll = TrimmedData.Roll_Trimmed
-        self.Pitch = TrimmedData.Pitch_Trimmed
+        self.AccX = ProcessedData.AccX_Trimmed
+        self.AccY = ProcessedData.AccY_Trimmed
+        self.AccZ = ProcessedData.AccZ_Trimmed
+        self.SMV = ProcessedData.SMV_Trimmed
+        self.Jerk = ProcessedData.Jerk_Trimmed
+        self.GyroX = ProcessedData.GyroX_Trimmed
+        self.GyroY = ProcessedData.GyroY_Trimmed
+        self.GyroZ = ProcessedData.GyroZ_Trimmed
+        self.Roll = ProcessedData.Roll_Trimmed
+        self.Pitch = ProcessedData.Pitch_Trimmed
 
         self.time = len(self.SMV) * SAMPLE_TIME
         self.trimmed_axis = numpy.arange(0, len(self.AccX) / SAMPLE_FREQ,
