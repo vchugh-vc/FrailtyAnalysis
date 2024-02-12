@@ -4,33 +4,52 @@ import matplotlib.pyplot as plt
 from numpy.fft import fft, fftfreq, rfft
 from scipy import signal
 
-filename = "IMUData.csv"
-plt.rcParams["figure.autolayout"] = True
-df = pd.read_csv(filename)
-# Time = df['Time']
-IMUAccY = df['AccY']
-IMUAccX = df['AccX']
-IMUAccZ = df['AccZ']
-IMUGyroX = df['GyroX']
-IMUGyroY = df['GyroY']
-IMUGyroZ = df['GyroZ']
-IMURoll = df['Roll']
-IMUPitch = df['Pitch']
-# Time_diff = (df['Time'].iloc[-1] - df['Time'].iloc[0])
-
-# SAMPLE_TIME = (Time_diff / len(Time)) / 1000
-# SAMPLE_FREQ = numpy.round(1000 * len(Time) / Time_diff)
-
 SAMPLE_TIME = 0.0096
 SAMPLE_FREQ = 104
-
 SENSE = 0.02
-print(f"Sample Time: {SAMPLE_TIME} at Sample Freq: {SAMPLE_FREQ}")
+
+
+def starting():
+    filename = "IMUData.csv"
+    plt.rcParams["figure.autolayout"] = True
+    df = pd.read_csv(filename)
+    # Time = df['Time']
+    IMUAccY = df['AccY']
+    IMUAccX = df['AccX']
+    IMUAccZ = df['AccZ']
+    IMUGyroX = df['GyroX']
+    IMUGyroY = df['GyroY']
+    IMUGyroZ = df['GyroZ']
+    IMURoll = df['Roll']
+    IMUPitch = df['Pitch']
+    # Time_diff = (df['Time'].iloc[-1] - df['Time'].iloc[0])
+
+    # SAMPLE_TIME = (Time_diff / len(Time)) / 1000
+    # SAMPLE_FREQ = numpy.round(1000 * len(Time) / Time_diff)
+
+    SAMPLE_TIME = 0.0096
+    SAMPLE_FREQ = 104
+
+    SENSE = 0.02
+    print(f"Sample Time: {SAMPLE_TIME} at Sample Freq: {SAMPLE_FREQ}")
 
 
 class DataPreparation:
 
     def __init__(self):
+
+        filename = "IMUData.csv"
+        plt.rcParams["figure.autolayout"] = True
+        df = pd.read_csv(filename)
+        IMUAccY = df['AccY']
+        IMUAccX = df['AccX']
+        IMUAccZ = df['AccZ']
+        IMUGyroX = df['GyroX']
+        IMUGyroY = df['GyroY']
+        IMUGyroZ = df['GyroZ']
+        IMURoll = df['Roll']
+        IMUPitch = df['Pitch']
+
         self.AccX_Trimmed = None
         self.AccY_Trimmed = None
         self.AccZ_Trimmed = None

@@ -7,16 +7,15 @@ from FeatureClass import DataPreparation, Features
 
 from dtaidistance import dtw
 
-FilteredData = DataPreparation()
-DataFeatures = Features(FilteredData)
-
-AccZ = DataFeatures.AccZ
-AccY = DataFeatures.AccY
-AccX = DataFeatures.AccX
+# FilteredData = DataPreparation()
+# DataFeatures = Features(FilteredData)
+#
+# AccZ = DataFeatures.AccZ
+# AccY = DataFeatures.AccY
+# AccX = DataFeatures.AccX
 
 IMUFile = "EdgeData/Up-Mid-Stable-2.csv"
-df = pd.read_csv(IMUFile)
-DTWAccZ = df['accZ']
+
 
 
 class DataTimeWarping:
@@ -97,10 +96,10 @@ class DataTimeWarping:
 
     def movement_phases(self):
 
-        plt.plot(AccX[self.up_end:self.down_start])
-        plt.plot(AccY[self.up_end:self.down_start])
-        plt.plot(AccZ[self.up_end:self.down_start])
-        plt.show()
+        # plt.plot(AccX[self.up_end:self.down_start])
+        # plt.plot(AccY[self.up_end:self.down_start])
+        # plt.plot(AccZ[self.up_end:self.down_start])
+        # plt.show()
 
         self.movement_stamps = [0, self.up_end, self.down_start, len(self.AccZ)]
 
@@ -108,5 +107,3 @@ class DataTimeWarping:
             print(f"{self.movement_stamps[i]} and {self.movement_stamps[i + 1]}")
         print(self.movement_stamps)
 
-
-DataTimeWarping(AccZ)
