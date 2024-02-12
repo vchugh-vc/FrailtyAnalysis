@@ -40,12 +40,6 @@ def subscribe(client: mqtt_client):
     client.on_message = on_message
 
 
-def signal_handler(client: mqtt_client, sig, frame):
-    print("SIGINT received. Stopping MQTT client...")
-    client.loop_stop()
-    sys.exit(0)
-
-
 def run():
     client = connect_mqtt()
     subscribe(client)
@@ -63,12 +57,12 @@ def starter():
 
 
 def mqtt_transmission():
+    client = connect_mqtt()
     try:
         starter()
         run()
-    except KeyboardInterrupt:
-        print("SIGINT received. Stopping MQTT client...")
+    except:
+        client.disconnect()
+        client.loop_stop()
         file.close()
-
-
-mqtt_transmission()
+        print('finished')
