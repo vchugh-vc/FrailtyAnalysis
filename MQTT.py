@@ -1,5 +1,7 @@
 # https://www.emqx.com/en/blog/how-to-use-mqtt-in-python
 
+import signal
+import sys
 from paho.mqtt import client as mqtt_client
 
 broker = 'test.mosquitto.org'
@@ -9,18 +11,24 @@ client_id = "VarunChugh"
 
 fileName = "IMUData.csv"
 
+file = open(fileName, "w")
+print("Created file")
+
+
 def connect_mqtt():
     def on_connect(client, userdata, flags, rc):
         if rc == 0:
             print("Connected to MQTT Broker!")
         else:
             print("Failed to connect, return code %d\n", rc)
+
     # Set Connecting Client ID
-    client = mqtt_client.Client(client_id)
+    client = mqtt_client.Client(client_id, clean_session=False)
     # client.username_pw_set(username, password)
     client.on_connect = on_connect
     client.connect(broker, port)
     return client
+
 
 def subscribe(client: mqtt_client):
     def on_message(client, userdata, msg):
@@ -32,33 +40,35 @@ def subscribe(client: mqtt_client):
     client.on_message = on_message
 
 
+def signal_handler(client: mqtt_client, sig, frame):
+    print("SIGINT received. Stopping MQTT client...")
+    client.loop_stop()
+    sys.exit(0)
+
+
 def run():
     client = connect_mqtt()
     subscribe(client)
     client.loop_forever()
 
-file = open(fileName, "w")
-print("Created file")
 
-total = 0
-i = 0
+def starter():
+    i = 0
 
-file.write("AccX,AccY,AccZ,GyroX,GyroY,GyroZ,Roll,Pitch\n")
+    file.write("AccX,AccY,AccZ,GyroX,GyroY,GyroZ,Roll,Pitch\n")
 
-while i < 500:  # Adds arbitrary data that to be Processed by the Butterworth Filter
-    file.write(f"0,0,1,0,0,0,0,0\n")
-    i += 1
+    while i < 500:  # Adds arbitrary data that to be Processed by the Butterworth Filter
+        file.write(f"0,0,1,0,0,0,0,0\n")
+        i += 1
 
 
-
-def main():
+def mqtt_transmission():
     try:
-        # Your main code here
-        print("Running main function...")
-        while True:
-            run()
+        starter()
+        run()
     except KeyboardInterrupt:
-        print("\nKeyboard interrupt received in main. Exiting...")
+        print("SIGINT received. Stopping MQTT client...")
+        file.close()
 
-if __name__ == "__main__":
-    main()
+
+mqtt_transmission()
