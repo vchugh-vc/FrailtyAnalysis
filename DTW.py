@@ -28,6 +28,7 @@ class DataTimeWarping:
         self.DTWUp()
         self.DTWDown()
         self.movement_stamps
+        self.movement_phases()
 
     def DTW1(self):  # DTW Comparing an entire signal against pre-recorded signals and return the best fit
         minimum = 100
@@ -103,7 +104,8 @@ class DataTimeWarping:
 
         self.movement_stamps = [0, self.up_end, self.down_start, len(self.AccZ)]
 
-        for i in range(len(self.movement_stamps) - 1):
-            print(f"{self.movement_stamps[i]} and {self.movement_stamps[i + 1]}")
+        # for i in range(len(self.movement_stamps) - 1):
+        #     print(f"{self.movement_stamps[i]} and {self.movement_stamps[i + 1]}")
+
         print(self.movement_stamps)
 
