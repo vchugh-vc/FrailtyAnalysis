@@ -137,8 +137,7 @@ class DataPreparation:
         # self.movement_filter()
         self.movement_filter2()
 
-    def movement_filter(
-            self):  # Detects when movement has started or stopped based on previous values (of rolling SMV) at a
+    def movement_filter(self):  # Detects when movement has started or stopped based on previous values (of rolling SMV) at a
         # given threshold
 
         start = []  # used for if there are multiple start stops in a movement pattern
@@ -179,9 +178,7 @@ class DataPreparation:
         self.Roll_Trimmed = self.Roll[start[time_stamp]:stop[time_stamp]]
         self.Pitch_Trimmed = self.Pitch[start[time_stamp]:stop[time_stamp]]
 
-    def movement_filter2(
-            self):  # Detects when movement has started or stopped based on previous values (of rolling SMV) at a
-        # given threshold
+    def movement_filter2(self):  # Detects when movement based on previous values (of rolling SMV) at a given threshold
 
         time_data = {}
 
@@ -214,6 +211,8 @@ class DataPreparation:
             print('stop is there')
         else:
             time_data[len(self.SMV_roll)] = 'stop'
+
+        time_data[len(self.SMV_roll)] = 'stop'
 
         time_data_sorted = sorted(time_data.items()) # used to sort the dictionary by time stamp (preserves order of data)
 
@@ -263,18 +262,29 @@ class DataPreparation:
 
 class Features:
 
-    def __init__(self, ProcessedData):
+    def __init__(self, ProcessedData, timestamps):
 
-        self.AccX = ProcessedData.AccX_Trimmed
-        self.AccY = ProcessedData.AccY_Trimmed
-        self.AccZ = ProcessedData.AccZ_Trimmed
-        self.SMV = ProcessedData.SMV_Trimmed
-        self.Jerk = ProcessedData.Jerk_Trimmed
-        self.GyroX = ProcessedData.GyroX_Trimmed
-        self.GyroY = ProcessedData.GyroY_Trimmed
-        self.GyroZ = ProcessedData.GyroZ_Trimmed
-        self.Roll = ProcessedData.Roll_Trimmed
-        self.Pitch = ProcessedData.Pitch_Trimmed
+        self.RawAccX = ProcessedData.AccX_Trimmed
+        self.RawAccY = ProcessedData.AccY_Trimmed
+        self.RawAccZ = ProcessedData.AccZ_Trimmed
+        self.RawSMV = ProcessedData.SMV_Trimmed
+        self.RawJerk = ProcessedData.Jerk_Trimmed
+        self.RawGyroX = ProcessedData.GyroX_Trimmed
+        self.RawGyroY = ProcessedData.GyroY_Trimmed
+        self.RawGyroZ = ProcessedData.GyroZ_Trimmed
+        self.RawRoll = ProcessedData.Roll_Trimmed
+        self.RawPitch = ProcessedData.Pitch_Trimmed
+
+        self.AccX = self.RawAccX[timestamps[0]:timestamps[1]]
+        self.AccY = self.RawAccY[timestamps[0]:timestamps[1]]
+        self.AccZ = self.RawAccZ[timestamps[0]:timestamps[1]]
+        self.SMV = self.RawSMV[timestamps[0]:timestamps[1]]
+        self.Jerk = self.RawJerk[timestamps[0]:timestamps[1]]
+        self.GyroX = self.RawGyroX[timestamps[0]:timestamps[1]]
+        self.GyroY = self.RawGyroY[timestamps[0]:timestamps[1]]
+        self.GyroZ = self.RawGyroZ[timestamps[0]:timestamps[1]]
+        self.Roll = self.RawRoll[timestamps[0]:timestamps[1]]
+        self.Pitch = self.RawPitch[timestamps[0]:timestamps[1]]
 
         self.time = len(self.SMV) * SAMPLE_TIME
         self.trimmed_axis = numpy.arange(0, len(self.AccX) / SAMPLE_FREQ,
@@ -366,7 +376,7 @@ class Features:
 
     def data_extraction(self, array, dictionary):
         self.minmax_spread(array, dictionary)
-        print(dictionary)
+        # print(dictionary)
 
     def dictionary_combine(self):
 
