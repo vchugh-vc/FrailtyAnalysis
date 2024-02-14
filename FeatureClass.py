@@ -323,6 +323,7 @@ class Features:
         self.output2 = {}
         self.dictionary_combine()
         self.angle_graph()
+        print(self.output2)
 
     def graph_trimmed(self):  # graphs the sections that have been trimmed by the movement filter
 
@@ -359,14 +360,19 @@ class Features:
         max_data = max(array)
         min_data = min(array)
         minmax_data = max_data - min_data
-        peak_data = max(max_data, min_data)
+        peak_data = max(max_data, numpy.abs(min_data))
+        peak_time = numpy.where(array == peak_data)[0]
+        if len(peak_time) == 0:
+            peak_time = numpy.where(array == -peak_data)[0]
         rms_data = numpy.sqrt(numpy.mean(array ** 2))
         std_data = numpy.nanstd(array)
         var_data = numpy.nanvar(array)
+
         dictionary['max'] = max_data
         dictionary['min'] = min_data
         dictionary['minmax'] = minmax_data
         dictionary['peak'] = peak_data
+        dictionary['peak time'] = peak_time.item() * SAMPLE_TIME
         dictionary['rms'] = rms_data
         dictionary['std'] = std_data
         dictionary['var'] = var_data
@@ -377,7 +383,7 @@ class Features:
 
     def dictionary_combine(self):
 
-        axis = [self.x_features, self.y_features, self.z_features, self.SMV_features]
+        axis = [self.x_features, self.y_features, self.z_features]
 
         for i in range(len(axis)):
             for keys, values in axis[i].items():
@@ -389,7 +395,7 @@ class Features:
                     label = 'Z'
                 elif i == 3:
                     label = 'SMV'
-                print(f"{label}{keys} : {values}")
+                # print(f"{label}{keys} : {values}")
                 self.output2[f"{label}{keys}"] = values
 
         self.output2['Freq'] = self.FFTFreq
@@ -518,44 +524,7 @@ class Features:
         plt.show()
 
     def sparc(self, movement, fs=104, padlevel=4, fc=10.0, amp_th=0.05):
-        """
-        Calcualtes the smoothness of the given speed profile using the modified
-        spectral arc length metric.
 
-        Parameters
-        ----------
-        movement : np.array
-                   The array containing the movement speed profile.
-        fs       : float
-                   The sampling frequency of the data.
-        padlevel : integer, optional
-                   Indicates the amount of zero padding to be done to the movement
-                   data for estimating the spectral arc length. [default = 4]
-        fc       : float, optional
-                   The max. cut off frequency for calculating the spectral arc
-                   length metric. [default = 10.]
-        amp_th   : float, optional
-                   The amplitude threshold to used for determing the cut off
-                   frequency upto which the spectral arc length is to be estimated.
-                   [default = 0.05]
-
-        Returns
-        -------
-        sal      : float
-                   The spectral arc length estimate of the given movement's
-                   smoothness.
-        (f, Mf)  : tuple of two np.arrays
-                   This is the frequency(f) and the magntiude spectrum(Mf) of the
-                   given movement data. This spectral is from 0. to fs/2.
-        (f_sel, Mf_sel) : tuple of two np.arrays
-                          This is the portion of the spectrum that is selected for
-                          calculating the spectral arc length.
-
-        Notes
-        -----
-        This is the modfieid spectral arc length metric, which has been tested only
-        for discrete movements.
-        """
         # Number of zeros to be padded.
         nfft = int(pow(2, numpy.ceil(numpy.log2(len(movement))) + padlevel))
 
@@ -565,18 +534,10 @@ class Features:
         Mf = abs(numpy.fft.fft(movement, nfft))
         Mf = Mf / max(Mf)
 
-        # Indices to choose only the spectrum within the given cut off frequency
-        # Fc.
-        # NOTE: This is a low pass filtering operation to get rid of high frequency
-        # noise from affecting the next step (amplitude threshold based cut off for
-        # arc length calculation).
         fc_inx = ((f <= fc) * 1).nonzero()
         f_sel = f[fc_inx]
         Mf_sel = Mf[fc_inx]
 
-        # Choose the amplitude threshold based cut off frequency.
-        # Index of the last point on the magnitude spectrum that is greater than
-        # or equal to the amplitude threshold.
         inx = ((Mf_sel >= amp_th) * 1).nonzero()[0]
         fc_inx = range(inx[0], inx[-1] + 1)
         f_sel = f_sel[fc_inx]
