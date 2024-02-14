@@ -286,6 +286,13 @@ class Features:
         self.Roll = self.RawRoll[timestamps[0]:timestamps[1]]
         self.Pitch = self.RawPitch[timestamps[0]:timestamps[1]]
 
+        self.SparcX = self.sparc(self.GyroZ)
+        self.SparcY = self.sparc(self.GyroX)
+        self.SparcZ = self.sparc(self.GyroY)
+        self.SPARC_RMS = (self.SparcZ[0] + self.SparcX[0] + self.SparcY[0]) / 3
+        print(f"Total = {self.SPARC_RMS}, X = {self.SparcX[0]}, Y = {self.SparcY[0]}, Z = {self.SparcZ[0]}")
+
+
         self.time = len(self.SMV) * SAMPLE_TIME
         self.trimmed_axis = numpy.arange(0, len(self.AccX) / SAMPLE_FREQ,
                                          1 / SAMPLE_FREQ)
@@ -302,8 +309,6 @@ class Features:
         self.data_extraction(self.AccY, self.y_features)
         self.data_extraction(self.AccX, self.x_features)
 
-        self.frequency_calc()
-        self.freq_calc_2()
 
         self.output = [self.x_features['max'], self.x_features['min'], self.x_features['minmax'],
                        self.x_features['peak'], self.x_features['std'], self.x_features['rms'], self.x_features['var'],
@@ -349,14 +354,6 @@ class Features:
         plt.title("Jerk (SMV)")
         plt.show()
 
-    def sliding_windows(self, data):  # Creates Sliding Windows from Filtered and Sliced Array
-        i = 0
-        window_array = []
-        while i <= len(data):
-            window_small = data[i:i + 20]
-            window_array.append(window_small)
-            i += 10
-        return window_array
 
     def minmax_spread(self, array, dictionary):  # Returns Min-Max Data of an Array
         max_data = max(array)
@@ -519,3 +516,89 @@ class Features:
         plt.title("Angle (Pitch, Roll")
         plt.legend(loc=1)
         plt.show()
+
+    def sparc(self, movement, fs=104, padlevel=4, fc=10.0, amp_th=0.05):
+        """
+        Calcualtes the smoothness of the given speed profile using the modified
+        spectral arc length metric.
+
+        Parameters
+        ----------
+        movement : np.array
+                   The array containing the movement speed profile.
+        fs       : float
+                   The sampling frequency of the data.
+        padlevel : integer, optional
+                   Indicates the amount of zero padding to be done to the movement
+                   data for estimating the spectral arc length. [default = 4]
+        fc       : float, optional
+                   The max. cut off frequency for calculating the spectral arc
+                   length metric. [default = 10.]
+        amp_th   : float, optional
+                   The amplitude threshold to used for determing the cut off
+                   frequency upto which the spectral arc length is to be estimated.
+                   [default = 0.05]
+
+        Returns
+        -------
+        sal      : float
+                   The spectral arc length estimate of the given movement's
+                   smoothness.
+        (f, Mf)  : tuple of two np.arrays
+                   This is the frequency(f) and the magntiude spectrum(Mf) of the
+                   given movement data. This spectral is from 0. to fs/2.
+        (f_sel, Mf_sel) : tuple of two np.arrays
+                          This is the portion of the spectrum that is selected for
+                          calculating the spectral arc length.
+
+        Notes
+        -----
+        This is the modfieid spectral arc length metric, which has been tested only
+        for discrete movements.
+        """
+        # Number of zeros to be padded.
+        nfft = int(pow(2, numpy.ceil(numpy.log2(len(movement))) + padlevel))
+
+        # Frequency
+        f = numpy.arange(0, fs, fs / nfft)
+        # Normalized magnitude spectrum
+        Mf = abs(numpy.fft.fft(movement, nfft))
+        Mf = Mf / max(Mf)
+
+        # Indices to choose only the spectrum within the given cut off frequency
+        # Fc.
+        # NOTE: This is a low pass filtering operation to get rid of high frequency
+        # noise from affecting the next step (amplitude threshold based cut off for
+        # arc length calculation).
+        fc_inx = ((f <= fc) * 1).nonzero()
+        f_sel = f[fc_inx]
+        Mf_sel = Mf[fc_inx]
+
+        # Choose the amplitude threshold based cut off frequency.
+        # Index of the last point on the magnitude spectrum that is greater than
+        # or equal to the amplitude threshold.
+        inx = ((Mf_sel >= amp_th) * 1).nonzero()[0]
+        fc_inx = range(inx[0], inx[-1] + 1)
+        f_sel = f_sel[fc_inx]
+        Mf_sel = Mf_sel[fc_inx]
+
+        # Calculate arc length
+        new_sal = -sum(numpy.sqrt(pow(numpy.diff(f_sel) / (f_sel[-1] - f_sel[0]), 2) +
+                               pow(numpy.diff(Mf_sel), 2)))
+
+        # plt.subplot(2, 1, 1)
+        # plt.plot(f, Mf)
+        # plt.xlim(-1, 20)
+        # plt.subplot(2, 1, 2)
+        # plt.plot(f_sel, Mf_sel)
+        # plt.xlim(-1, 20)
+        # plt.show()
+
+        # print(f"Arc Length {new_sal}, Frequ {f}, Magn. {Mf}")
+        return [new_sal, (f, Mf), (f_sel, Mf_sel)]
+
+
+
+
+
+
