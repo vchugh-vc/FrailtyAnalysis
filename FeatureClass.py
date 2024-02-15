@@ -6,7 +6,7 @@ from scipy import signal
 
 SAMPLE_TIME = 0.0096
 SAMPLE_FREQ = 104
-SENSE = 0.02
+SENSE = 0.015
 
 
 def starting():
@@ -262,7 +262,7 @@ class DataPreparation:
 
 class Features:
 
-    def __init__(self, ProcessedData, timestamps):
+    def __init__(self, ProcessedData, timestamps, label):
 
         self.RawAccX = ProcessedData.AccX_Trimmed
         self.RawAccY = ProcessedData.AccY_Trimmed
@@ -274,6 +274,7 @@ class Features:
         self.RawGyroZ = ProcessedData.GyroZ_Trimmed
         self.RawRoll = ProcessedData.Roll_Trimmed
         self.RawPitch = ProcessedData.Pitch_Trimmed
+        self.label = label
 
         self.AccX = self.RawAccX[timestamps[0]:timestamps[1]]
         self.AccY = self.RawAccY[timestamps[0]:timestamps[1]]
@@ -324,6 +325,7 @@ class Features:
         self.dictionary_combine()
         self.angle_graph()
         print(self.output2)
+        self.FrailtyIndex()
 
     def graph_trimmed(self):  # graphs the sections that have been trimmed by the movement filter
 
@@ -358,7 +360,9 @@ class Features:
 
     def minmax_spread(self, array, dictionary):  # Returns Min-Max Data of an Array
         max_data = max(array)
+        max_time = numpy.where(array == max_data)[0]
         min_data = min(array)
+        min_time = numpy.where(array == min_data)[0]
         minmax_data = max_data - min_data
         peak_data = max(max_data, numpy.abs(min_data))
         peak_time = numpy.where(array == peak_data)[0]
@@ -369,7 +373,9 @@ class Features:
         var_data = numpy.nanvar(array)
 
         dictionary['max'] = max_data
+        dictionary['max time'] = max_time.item() * SAMPLE_TIME
         dictionary['min'] = min_data
+        dictionary['min time'] = min_time.item() * SAMPLE_TIME
         dictionary['minmax'] = minmax_data
         dictionary['peak'] = peak_data
         dictionary['peak time'] = peak_time.item() * SAMPLE_TIME
@@ -559,7 +565,13 @@ class Features:
         return [new_sal, (f, Mf), (f_sel, Mf_sel)]
 
 
+    def FrailtyIndex(self):
 
+        score = 0
+        if self.label == 'up':
+            score = self.output2['Zmin time'] - self.output2['Zmax time']
+
+        print(score)
 
 
 
