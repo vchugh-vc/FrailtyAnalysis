@@ -264,6 +264,7 @@ class Features:
 
     def __init__(self, ProcessedData, timestamps, label):
 
+        self.score = None
         self.RawAccX = ProcessedData.AccX_Trimmed
         self.RawAccY = ProcessedData.AccY_Trimmed
         self.RawAccZ = ProcessedData.AccZ_Trimmed
@@ -567,11 +568,13 @@ class Features:
 
     def FrailtyIndex(self):
 
-        score = 0
+        self.score = 0
         if self.label == 'up':
-            score = self.output2['Zmin time'] - self.output2['Zmax time']
+            self.score = self.output2['Zmin time'] - self.output2['Zmax time']
+            print(self.output2['Zpeak'])
+            print(self.SPARC_RMS)
 
-        print(score)
+        elif self.label == 'middle':
+            self.score = len(self.AccZ)
 
-
-
+        print(self.score)
