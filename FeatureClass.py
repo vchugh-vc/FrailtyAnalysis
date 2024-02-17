@@ -137,7 +137,8 @@ class DataPreparation:
         # self.movement_filter()
         self.movement_filter2()
 
-    def movement_filter(self):  # Detects when movement has started or stopped based on previous values (of rolling SMV) at a
+    def movement_filter(
+            self):  # Detects when movement has started or stopped based on previous values (of rolling SMV) at a
         # given threshold
 
         start = []  # used for if there are multiple start stops in a movement pattern
@@ -214,13 +215,13 @@ class DataPreparation:
 
         time_data[len(self.SMV_roll)] = 'stop'
 
-        time_data_sorted = sorted(time_data.items()) # used to sort the dictionary by time stamp (preserves order of data)
+        time_data_sorted = sorted(
+            time_data.items())  # used to sort the dictionary by time stamp (preserves order of data)
 
-        time_data_order = {key: value for key, value in time_data_sorted} #new ordered dictionary of time stamps
+        time_data_order = {key: value for key, value in time_data_sorted}  # new ordered dictionary of time stamps
 
         keys = list(time_data_order.keys())
         values = list(time_data_order.values())
-
 
         for i in range(len(values) - len(sequence) + 1):  # Checks for start-stop sequence
             if values[i:i + len(sequence)] == sequence:
@@ -262,7 +263,7 @@ class DataPreparation:
 
 class Features:
 
-    def __init__(self, ProcessedData, timestamps, label):
+    def __init__(self, ProcessedData, timestamps):
 
         self.score = None
         self.RawAccX = ProcessedData.AccX_Trimmed
@@ -275,7 +276,6 @@ class Features:
         self.RawGyroZ = ProcessedData.GyroZ_Trimmed
         self.RawRoll = ProcessedData.Roll_Trimmed
         self.RawPitch = ProcessedData.Pitch_Trimmed
-        self.label = label
 
         self.AccX = self.RawAccX[timestamps[0]:timestamps[1]]
         self.AccY = self.RawAccY[timestamps[0]:timestamps[1]]
@@ -292,8 +292,8 @@ class Features:
         self.SparcY = self.sparc(self.GyroX)
         self.SparcZ = self.sparc(self.GyroY)
         self.SPARC_RMS = (self.SparcZ[0] + self.SparcX[0] + self.SparcY[0]) / 3
-        print(f"Total = {self.SPARC_RMS}, X = {self.SparcX[0]}, Y = {self.SparcY[0]}, Z = {self.SparcZ[0]}")
 
+        # print(f"Total = {self.SPARC_RMS}, X = {self.SparcX[0]}, Y = {self.SparcY[0]}, Z = {self.SparcZ[0]}")
 
         self.time = len(self.SMV) * SAMPLE_TIME
         self.trimmed_axis = numpy.arange(0, len(self.AccX) / SAMPLE_FREQ,
@@ -311,22 +311,10 @@ class Features:
         self.data_extraction(self.AccY, self.y_features)
         self.data_extraction(self.AccX, self.x_features)
 
-
-        self.output = [self.x_features['max'], self.x_features['min'], self.x_features['minmax'],
-                       self.x_features['peak'], self.x_features['std'], self.x_features['rms'], self.x_features['var'],
-                       self.y_features['max'], self.y_features['min'], self.y_features['minmax'],
-                       self.y_features['peak'], self.y_features['std'], self.y_features['rms'], self.y_features['var'],
-                       self.z_features['max'], self.z_features['min'], self.z_features['minmax'],
-                       self.z_features['peak'], self.z_features['std'], self.z_features['rms'], self.z_features['var'],
-                       self.SMV_features['max'], self.SMV_features['min'], self.SMV_features['minmax'],
-                       self.SMV_features['peak'], self.SMV_features['std'], self.SMV_features['rms'],
-                       self.SMV_features['var'], self.FFTFreq]
-
         self.output2 = {}
+
         self.dictionary_combine()
         self.angle_graph()
-        print(self.output2)
-        self.FrailtyIndex()
 
     def graph_trimmed(self):  # graphs the sections that have been trimmed by the movement filter
 
@@ -358,7 +346,6 @@ class Features:
         plt.title("Jerk (SMV)")
         plt.show()
 
-
     def minmax_spread(self, array, dictionary):  # Returns Min-Max Data of an Array
         max_data = max(array)
         max_time = numpy.where(array == max_data)[0]
@@ -383,6 +370,7 @@ class Features:
         dictionary['rms'] = rms_data
         dictionary['std'] = std_data
         dictionary['var'] = var_data
+        dictionary['length'] = len(self.AccZ)
 
     def data_extraction(self, array, dictionary):
         self.minmax_spread(array, dictionary)
@@ -406,6 +394,10 @@ class Features:
                 self.output2[f"{label}{keys}"] = values
 
         self.output2['Freq'] = self.FFTFreq
+        self.output2['SPARC X'] = self.SparcX[0]
+        self.output2['SPARC Y'] = self.SparcY[0]
+        self.output2['SPARC Z'] = self.SparcZ[0]
+        self.output2['SPARC RMS'] = self.SPARC_RMS
 
     def features_graph(self):
 
@@ -552,7 +544,7 @@ class Features:
 
         # Calculate arc length
         new_sal = -sum(numpy.sqrt(pow(numpy.diff(f_sel) / (f_sel[-1] - f_sel[0]), 2) +
-                               pow(numpy.diff(Mf_sel), 2)))
+                                  pow(numpy.diff(Mf_sel), 2)))
 
         # plt.subplot(2, 1, 1)
         # plt.plot(f, Mf)
@@ -565,16 +557,3 @@ class Features:
         # print(f"Arc Length {new_sal}, Frequ {f}, Magn. {Mf}")
         return [new_sal, (f, Mf), (f_sel, Mf_sel)]
 
-
-    def FrailtyIndex(self):
-
-        self.score = 0
-        if self.label == 'up':
-            self.score = self.output2['Zmin time'] - self.output2['Zmax time']
-            print(self.output2['Zpeak'])
-            print(self.SPARC_RMS)
-
-        elif self.label == 'middle':
-            self.score = len(self.AccZ)
-
-        print(self.score)
