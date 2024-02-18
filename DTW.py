@@ -4,7 +4,7 @@ import pandas as pd
 import os
 import matplotlib.pyplot as plt
 import numpy
-from FeatureClass import DataPreparation, Features
+from scipy.signal import find_peaks
 
 from dtaidistance import dtw
 
@@ -31,7 +31,8 @@ class DataTimeWarping:
         self.trimmed_axis = numpy.arange(0, len(self.AccZ) / SAMPLE_FREQ,
                                          1 / SAMPLE_FREQ)
         self.DTWUp()
-        self.DTWDown()
+        # self.DTWDown()
+        self.DTWDown2()
         self.movement_stamps
         self.movement_phases()
 
@@ -42,7 +43,7 @@ class DataTimeWarping:
         for i in os.listdir('EdgeData'):
             df = pd.read_csv(f"EdgeData/{i}")
             DTWAccZ = df['accZ']
-            distance = dtw.distance(AccZ, DTWAccZ)
+            distance = dtw.distance(self.AccZ, DTWAccZ)
             print(f"DTW Distance: {distance}")
             if distance <= minimum:
                 minimum = distance
@@ -101,6 +102,21 @@ class DataTimeWarping:
         plt.show()
 
         self.down_start = len(self.AccZ) - data_range
+
+
+    def DTWDown2(self): # Detects putting down motion based on peak caused by impact with a surface
+
+        peak = max(self.AccZ[-200:])
+        print(peak)
+        max_time = numpy.where(self.AccZ[-200:] == peak)[0]
+        print(max_time)
+        data_range = max_time.item() + 10
+        plt.suptitle('Putting Down Graph')
+        print(data_range)
+        self.down_start = len(self.AccZ) - data_range
+        plt.plot(self.AccZ[self.down_start:], label='IMU')
+        plt.legend()
+        plt.show()
 
     def movement_phases(self):
 
