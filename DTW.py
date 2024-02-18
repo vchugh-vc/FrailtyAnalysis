@@ -106,11 +106,12 @@ class DataTimeWarping:
 
     def DTWDown2(self): # Detects putting down motion based on peak caused by impact with a surface
 
-        peak = max(self.AccZ[-200:])
+        peak = numpy.max(self.AccZ[-100:])
         print(peak)
-        max_time = numpy.where(self.AccZ[-200:] == peak)[0]
+        # max_time = numpy.where(self.AccZ[-200:] == peak)[0]
+        max_time = numpy.argmax(self.AccZ[-100:])
         print(max_time)
-        data_range = max_time.item() + 10
+        data_range = 110 - max_time.item()
         plt.suptitle('Putting Down Graph')
         print(data_range)
         self.down_start = len(self.AccZ) - data_range
