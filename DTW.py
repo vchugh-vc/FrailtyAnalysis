@@ -3,6 +3,7 @@
 import pandas as pd
 import os
 import matplotlib.pyplot as plt
+import numpy
 from FeatureClass import DataPreparation, Features
 
 from dtaidistance import dtw
@@ -16,15 +17,19 @@ from dtaidistance import dtw
 
 IMUFile = "EdgeData/Up-Mid-Stable-2.csv"
 
+SAMPLE_FREQ = 104
 
 
 class DataTimeWarping:
 
     def __init__(self, signal):
+
         self.movement_stamps = None
         self.up_end = None
         self.down_start = None
         self.AccZ = signal
+        self.trimmed_axis = numpy.arange(0, len(self.AccZ) / SAMPLE_FREQ,
+                                         1 / SAMPLE_FREQ)
         self.DTWUp()
         self.DTWDown()
         self.movement_stamps
@@ -62,6 +67,7 @@ class DataTimeWarping:
                 data_range = i
             i += 30
 
+        plt.suptitle('Lifting Graph')
         print(data_range)
         plt.plot(DTWAccZ, label='DTW')
         plt.plot(self.AccZ[0:data_range], label='IMU')
@@ -76,10 +82,10 @@ class DataTimeWarping:
         df = pd.read_csv(IMUFile)
         DTWAccZ = df['accZ']
 
-        i = 30
+        i = 50
         minimum = 100
         data_range = 0
-        while i < 400:
+        while i < 500:
             distance = dtw.distance(self.AccZ[-i:], DTWAccZ)
             print(f"From 0-{i}, the distance is {distance}")
             if distance <= minimum:
@@ -87,6 +93,7 @@ class DataTimeWarping:
                 data_range = i
             i += 30
 
+        plt.suptitle('Putting Down Graph')
         print(data_range)
         plt.plot(DTWAccZ, label='DTW')
         plt.plot(self.AccZ[-data_range:], label='IMU')
