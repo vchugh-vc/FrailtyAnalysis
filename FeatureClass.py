@@ -75,6 +75,7 @@ class DataPreparation:
         self.FilteredLength = len(self.AccX)
         self.time_axis = numpy.arange(0, (self.FilteredLength / SAMPLE_FREQ),
                                       1 / SAMPLE_FREQ)
+        self.time_axis_trimmed = []
         self.SMV_Window()
         self.rolling_axis = numpy.arange(0, self.FilteredLength / SAMPLE_FREQ,
                                          (self.FilteredLength / SAMPLE_FREQ) / len(
@@ -104,6 +105,8 @@ class DataPreparation:
             print(f"Acc = {len(self.AccX)} and Time {len(self.time_axis)}")
 
         if len(self.AccX) == len(self.time_axis):
+
+            plt.suptitle('Raw Movement Graph')
             plt.subplot(3, 1, 1)
             plt.plot(self.time_axis, self.AccX, label="X")
             plt.plot(self.time_axis, self.AccY, label="Y")
@@ -259,6 +262,8 @@ class DataPreparation:
         self.GyroZ_Trimmed = self.GyroZ[movement_start:movement_stop]
         self.Roll_Trimmed = self.Roll[movement_start:movement_stop]
         self.Pitch_Trimmed = self.Pitch[movement_start:movement_stop]
+        self.time_axis_trimmed = numpy.arange(0, (len(self.AccX_Trimmed) / SAMPLE_FREQ),
+                                              1 / SAMPLE_FREQ)
 
 
 class Features:
@@ -305,11 +310,13 @@ class Features:
         self.y_features = {}
         self.z_features = {}
         self.SMV_features = {}
+        self.pitch_features = {}
 
         self.data_extraction(self.SMV, self.SMV_features)
         self.data_extraction(self.AccZ, self.z_features)
         self.data_extraction(self.AccY, self.y_features)
         self.data_extraction(self.AccX, self.x_features)
+        self.data_extraction(self.Pitch, self.pitch_features)
 
         self.output2 = {}
 
@@ -321,6 +328,8 @@ class Features:
         if (len(self.trimmed_axis)) > len(self.AccX):
             last = len(self.trimmed_axis) - 1
             self.trimmed_axis = self.trimmed_axis[:last]
+
+        plt.suptitle('Individual Movement Phase Graph')
         plt.subplot(3, 1, 1)
         plt.plot(self.trimmed_axis, self.AccX, label="X")
         plt.plot(self.trimmed_axis, self.AccY, label="Y")
@@ -364,7 +373,7 @@ class Features:
         dictionary['max time'] = max_time.item() * SAMPLE_TIME
         dictionary['min'] = min_data
         dictionary['min time'] = min_time.item() * SAMPLE_TIME
-        dictionary['minmax'] = minmax_data
+        dictionary['range'] = minmax_data
         dictionary['peak'] = peak_data
         dictionary['peak time'] = peak_time.item() * SAMPLE_TIME
         dictionary['rms'] = rms_data
@@ -378,7 +387,7 @@ class Features:
 
     def dictionary_combine(self):
 
-        axis = [self.x_features, self.y_features, self.z_features]
+        axis = [self.x_features, self.y_features, self.z_features, self.pitch_features]
 
         for i in range(len(axis)):
             for keys, values in axis[i].items():
@@ -389,7 +398,7 @@ class Features:
                 elif i == 2:
                     label = 'Z'
                 elif i == 3:
-                    label = 'SMV'
+                    label = 'Pitch'
                 # print(f"{label}{keys} : {values}")
                 self.output2[f"{label}{keys}"] = values
 
@@ -512,6 +521,8 @@ class Features:
         plt.show()
 
     def angle_graph(self):  # graphs the sections that have been trimmed by the movement filter
+
+        plt.suptitle('Pitch & Roll of Movement Phase Graph')
 
         plt.plot(self.trimmed_axis, self.Roll, label="Roll")
         plt.plot(self.trimmed_axis, self.Pitch, label="Pitch")
