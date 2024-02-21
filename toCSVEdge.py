@@ -5,12 +5,11 @@ import matplotlib.pyplot as plt
 import numpy
 
 FilteredData = DataPreparation()
-DataFeatures = Features(FilteredData)
 
-time = numpy.round(DataFeatures.trimmed_axis*1000)
-accX = DataFeatures.AccX
-accY = DataFeatures.AccY
-accZ = DataFeatures.AccZ
+time = numpy.round(FilteredData.time_axis_trimmed*1000)
+accX = FilteredData.AccX_Trimmed
+accY = FilteredData.AccY_Trimmed
+accZ = FilteredData.AccZ_Trimmed
 print(f"{len(time)} {len(accX)} {len(accY)} {len(accZ)}")
 
 df = pd.DataFrame({
@@ -28,7 +27,8 @@ plt.show()
 
 
 
-df.to_csv("EdgeData/Up.1.csv", index=False)
+df.to_csv("KettleData/Up-Mid-1.csv", index=False)
+print(df)
 
 
 
