@@ -310,13 +310,13 @@ class Features:
         self.y_features = {}
         self.z_features = {}
         self.SMV_features = {}
-        self.pitch_features = {}
+        self.roll_features = {}
 
         self.data_extraction(self.SMV, self.SMV_features)
         self.data_extraction(self.AccZ, self.z_features)
         self.data_extraction(self.AccY, self.y_features)
         self.data_extraction(self.AccX, self.x_features)
-        self.data_extraction(self.Pitch, self.pitch_features)
+        self.data_extraction(self.Roll, self.roll_features)
 
         self.output2 = {}
 
@@ -358,13 +358,26 @@ class Features:
     def minmax_spread(self, array, dictionary):  # Returns Min-Max Data of an Array
         max_data = max(array)
         max_time = numpy.where(array == max_data)[0]
+        print(max_time)
+        if len(max_time) > 1:
+            max_time = max_time[0]
+
         min_data = min(array)
         min_time = numpy.where(array == min_data)[0]
+        print(min_time)
+        if len(min_time) > 1:
+            min_time = min_time[0]
+
         minmax_data = max_data - min_data
+
         peak_data = max(max_data, numpy.abs(min_data))
         peak_time = numpy.where(array == peak_data)[0]
+        print(peak_time)
         if len(peak_time) == 0:
             peak_time = numpy.where(array == -peak_data)[0]
+        elif len(peak_time) > 1:
+            peak_time = peak_time[0]
+
         rms_data = numpy.sqrt(numpy.mean(array ** 2))
         std_data = numpy.nanstd(array)
         var_data = numpy.nanvar(array)
@@ -387,7 +400,7 @@ class Features:
 
     def dictionary_combine(self):
 
-        axis = [self.x_features, self.y_features, self.z_features, self.pitch_features]
+        axis = [self.x_features, self.y_features, self.z_features, self.roll_features]
 
         for i in range(len(axis)):
             for keys, values in axis[i].items():
@@ -398,7 +411,7 @@ class Features:
                 elif i == 2:
                     label = 'Z'
                 elif i == 3:
-                    label = 'Pitch'
+                    label = 'Roll'
                 # print(f"{label}{keys} : {values}")
                 self.output2[f"{label}{keys}"] = values
 
