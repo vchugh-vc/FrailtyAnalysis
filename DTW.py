@@ -4,18 +4,18 @@ import pandas as pd
 import os
 import matplotlib.pyplot as plt
 import numpy
+from FeatureClass import DataPreparation
 from scipy.signal import find_peaks
 
 from dtaidistance import dtw
 
-# FilteredData = DataPreparation()
 # DataFeatures = Features(FilteredData)
 #
 # AccZ = DataFeatures.AccZ
 # AccY = DataFeatures.AccY
 # AccX = DataFeatures.AccX
 
-IMUFile = "EdgeData/Up-Mid-Stable-2.csv"
+# IMUFile = "EdgeData/Up-Mid-Stable-2.csv"
 
 SAMPLE_FREQ = 104
 
@@ -30,7 +30,7 @@ class DataTimeWarping:
         self.AccZ = signal
         self.trimmed_axis = numpy.arange(0, len(self.AccZ) / SAMPLE_FREQ,
                                          1 / SAMPLE_FREQ)
-        self.DTWUp()
+        self.PhaseUp()
         # self.DTWDown()
         self.DTWDown2()
         self.movement_stamps
@@ -51,16 +51,17 @@ class DataTimeWarping:
 
         print(f"Closest File was {name}")
 
-    def DTWUp(self):  # Compares a known lifting signal to different intervals of a movement
+    def DTWUpFast(self):  # Compares a known lifting signal to different intervals of a movement
 
-        IMUFile = "EdgeData/Up-Mid-Stable-2.csv"
+        # IMUFile = "EdgeData/Up-Mid-Stable-2.csv" IMU File for Mug
+        IMUFile = "KettleData/Up-Mid-1.csv"
         df = pd.read_csv(IMUFile)
         DTWAccZ = df['accZ']
 
-        i = 30
+        i = 100
         minimum = 100
         data_range = 0
-        while i < 200:
+        while i < 300:
             distance = dtw.distance(self.AccZ[0:i], DTWAccZ)
             print(f"From 0:{i}, the distance is {distance}")
             if distance <= minimum:
@@ -68,14 +69,53 @@ class DataTimeWarping:
                 data_range = i
             i += 30
 
-        plt.suptitle('Lifting Graph')
+        plt.suptitle('Lifting Graph (Fast)')
         print(data_range)
         plt.plot(DTWAccZ, label='DTW')
         plt.plot(self.AccZ[0:data_range], label='IMU')
         plt.legend()
         plt.show()
 
-        self.up_end = data_range
+        return [data_range, minimum]
+
+    def DTWUpSlow(self):  # Compares a known lifting signal to different intervals of a movement
+
+        # IMUFile = "EdgeData/Up-Mid-Stable-2.csv" IMU File for Mug
+        IMUFile = "KettleData/Up-Slow-1.csv"
+        df = pd.read_csv(IMUFile)
+        DTWAccZ = df['accZ']
+
+        i = 100
+        minimum = 100
+        data_range = 0
+        while i < 300:
+            distance = dtw.distance(self.AccZ[0:i], DTWAccZ)
+            print(f"From 0:{i}, the distance is {distance}")
+            if distance <= minimum:
+                minimum = distance
+                data_range = i
+            i += 30
+
+        plt.suptitle('Lifting Graph (Slow)')
+        print(data_range)
+        plt.plot(DTWAccZ, label='DTW')
+        plt.plot(self.AccZ[0:data_range], label='IMU')
+        plt.legend()
+        plt.show()
+
+        return [data_range, minimum]
+
+    def PhaseUp(self):
+
+        fast = self.DTWUpFast()
+        slow = self.DTWUpSlow()
+
+        if fast[1] <= slow[1]:
+            self.up_end = fast[0]
+            print("Fast")
+        else:
+            self.up_end = slow[0]
+            print("Slow")
 
     def DTWDown(self):  # Compares a known down signal to different intervals of a movement
 
@@ -103,8 +143,7 @@ class DataTimeWarping:
 
         self.down_start = len(self.AccZ) - data_range
 
-
-    def DTWDown2(self): # Detects putting down motion based on peak caused by impact with a surface
+    def DTWDown2(self):  # Detects putting down motion based on peak caused by impact with a surface
 
         peak = numpy.max(self.AccZ[-100:])
         print(peak)
@@ -132,4 +171,3 @@ class DataTimeWarping:
         #     print(f"{self.movement_stamps[i]} and {self.movement_stamps[i + 1]}")
 
         print(self.movement_stamps)
-
