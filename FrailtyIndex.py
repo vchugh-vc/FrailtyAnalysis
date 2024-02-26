@@ -1,6 +1,3 @@
-
-
-
 class Frailty:
 
     def __init__(self, parameters, label):
@@ -10,18 +7,17 @@ class Frailty:
         self.score = 0
         self.FrailtyIndex()
 
-
     def FrailtyIndex(self):
 
         if self.label == 'up':
-            print('up')
-            self.score = self.Parameters['Zmin time'] - self.Parameters['Zmax time']
-            print(self.Parameters['Zpeak'])
-            print(self.Parameters['SPARC RMS'])
+
+            lift_delta =  self.Parameters['Zmin time'] - self.Parameters['Zmax time']
+            print(f"{self.Parameters['Zpeak']} Peak Z")
+            print(f"{lift_delta} Lift Delta")
+            print(f"{self.Parameters['SPARC RMS']} SPARC of Movement")
+            print(f"{self.Parameters['Rollrange']} Roll Range")
 
         elif self.label == 'middle':
-            self.score = len(self.Parameters['length'])
-
-        print(self.Parameters)
-        print(self.score)
-
+            print(f"{self.Parameters['Zlength']} Pouring Length")
+            print(f"{self.Parameters['Zpeak']} Peak Z")
+            print(f"{self.Parameters['SPARC RMS']} SPARC of Movement")
