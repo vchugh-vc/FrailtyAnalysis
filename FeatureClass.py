@@ -226,18 +226,30 @@ class DataPreparation:
             time_data.items())  # used to sort the dictionary by time stamp (preserves order of data)
 
         time_data_order = {key: value for key, value in time_data_sorted}  # new ordered dictionary of time stamps
-        print(time_data_order)
+
 
         keys = list(time_data_order.keys())
         values = list(time_data_order.values())
 
-        for i in range(len(values) - len(sequence) + 1):  # Checks for start-stop sequence
-            if values[i:i + len(sequence)] == sequence:
-                clips.append(keys[i:i + len(sequence)])
+        status = None # checks for sequence of starts and stops
+        for timestamp, event in time_data_order.items():
+            if event == 'start' and status is None:
+                clips.append(timestamp)
+                status = 'start'
+            elif event == 'stop' and status is not None:
+                clips.append(timestamp)
+                status = None
+
+
+        # for i in range(len(values) - len(sequence) + 1):  # Checks for start-stop sequence
+        #     if values[i:i + len(sequence)] == sequence:
+        #         clips.append(keys[i:i + len(sequence)])
+
+        print(f"Clips {clips}")
 
         for i in range(min(len(clips), len(clips))):  # calculates the longest period of movement to select
-            start_time = clips[i][0]
-            stop_time = clips[i][1]
+            start_time = clips[0]
+            stop_time = clips[1]
             duration = stop_time - start_time
             diff_movements[i] = {'duration': duration, 'start': start_time, 'stop': stop_time}
             if duration > longest_duration:
