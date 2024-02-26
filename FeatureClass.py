@@ -9,6 +9,8 @@ SAMPLE_FREQ = 104
 SENSE = 0.015
 
 
+
+
 def starting():
     filename = "IMUData.csv"
     plt.rcParams["figure.autolayout"] = True
@@ -136,7 +138,7 @@ class DataPreparation:
             plt.show()
 
     def SMV_Window(self):  # Creates Rolling Average for SMV
-        self.SMV_roll = numpy.convolve(self.SMV, numpy.ones(15), 'same') / 15
+        self.SMV_roll = numpy.convolve(self.SMV, numpy.ones(30), 'same') / 30
         # self.movement_filter()
         self.movement_filter2()
 
@@ -211,6 +213,8 @@ class DataPreparation:
         else:
             time_data[0] = 'start'
 
+        time_data[0] = 'start'
+
         if 'stop' in values:
             print('stop is there')
         else:
@@ -222,6 +226,7 @@ class DataPreparation:
             time_data.items())  # used to sort the dictionary by time stamp (preserves order of data)
 
         time_data_order = {key: value for key, value in time_data_sorted}  # new ordered dictionary of time stamps
+        print(time_data_order)
 
         keys = list(time_data_order.keys())
         values = list(time_data_order.values())
@@ -248,7 +253,7 @@ class DataPreparation:
 
         print(diff_movements)
         print(
-            f"2 From {movement_start * SAMPLE_TIME} ({movement_start}) to {movement_stop * SAMPLE_TIME} ({movement_stop})")
+            f"From {movement_start * SAMPLE_TIME} ({movement_start}) to {movement_stop * SAMPLE_TIME} ({movement_stop})")
 
         # creates filtered data based on movement filter
 
@@ -358,13 +363,11 @@ class Features:
     def minmax_spread(self, array, dictionary):  # Returns Min-Max Data of an Array
         max_data = max(array)
         max_time = numpy.where(array == max_data)[0]
-        print(max_time)
         if len(max_time) > 1:
             max_time = max_time[0]
 
         min_data = min(array)
         min_time = numpy.where(array == min_data)[0]
-        print(min_time)
         if len(min_time) > 1:
             min_time = min_time[0]
 
@@ -372,7 +375,6 @@ class Features:
 
         peak_data = max(max_data, numpy.abs(min_data))
         peak_time = numpy.where(array == peak_data)[0]
-        print(peak_time)
         if len(peak_time) == 0:
             peak_time = numpy.where(array == -peak_data)[0]
         elif len(peak_time) > 1:
