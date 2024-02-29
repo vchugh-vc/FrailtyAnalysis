@@ -5,7 +5,7 @@ import os
 import matplotlib.pyplot as plt
 import numpy
 from FeatureClass import DataPreparation
-from scipy.signal import find_peaks
+import scipy.signal as signal
 
 from dtaidistance import dtw
 
@@ -69,12 +69,14 @@ class DataTimeWarping:
                 data_range = i
             i += 30
 
+        self.up_check(data_range)
         plt.suptitle('Lifting Graph (Fast)')
         print(data_range)
         plt.plot(DTWAccZ, label='DTW')
         plt.plot(self.AccZ[0:data_range], label='IMU')
         plt.legend()
         plt.show()
+
 
         return [data_range, minimum]
 
@@ -104,6 +106,14 @@ class DataTimeWarping:
         plt.show()
 
         return [data_range, minimum]
+
+
+    def up_check(self, time):
+
+        up_peak = signal.find_peaks(self.AccZ[0:time], distance=30, width=5)
+        down_peak = signal.find_peaks(-self.AccZ[0:time], distance=30, width=5)
+        print(f"Scipy Peak of {up_peak[0]}")
+        print(f"Scipy Peak Down of {down_peak[0]}")
 
     def PhaseUp(self):
 
@@ -145,7 +155,7 @@ class DataTimeWarping:
 
     def DTWDown2(self):  # Detects putting down motion based on peak caused by impact with a surface
 
-        peak = numpy.max(self.AccZ[-100:])
+        peak = numpy.max(self.AccZ[-200:])
         print(peak)
         # max_time = numpy.where(self.AccZ[-200:] == peak)[0]
         max_time = numpy.argmax(self.AccZ[-100:])
