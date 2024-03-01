@@ -34,10 +34,11 @@ class DataTimeWarping:
         # self.DTWDown()
         # self.DTWDown2()
         self.Down3()
+        self.up3()
         self.movement_stamps
         self.movement_phases()
 
-    def DTW1(self):  # DTW Comparing an entire signal against pre-recorded signals and return the best fit
+    def DTWGeneral(self):  # DTW Comparing an entire signal against pre-recorded signals and return the best fit
         minimum = 100
         name = 0
 
@@ -70,7 +71,7 @@ class DataTimeWarping:
                 data_range = i
             i += 30
 
-        print(f"From {data_range}, the distance is {distance}")
+        print(f"Up Fast: From {data_range}, the distance is {distance}")
 
         self.up3()
         plt.suptitle('Lifting Graph (Fast)')
@@ -101,7 +102,7 @@ class DataTimeWarping:
                 data_range = i
             i += 30
 
-        print(f"From {data_range}, the distance is {distance}")
+        print(f"Up Slow: From {data_range}, the distance is {distance}")
 
         plt.suptitle('Lifting Graph (Slow)')
         print(data_range)
@@ -113,20 +114,40 @@ class DataTimeWarping:
         return [data_range, minimum]
 
 
-    def up_check(self, time):
-
-        up_peak = signal.find_peaks(self.AccZ[0:time], prominence=0.05, height=0.02)
-        down_peak = signal.find_peaks(-self.AccZ[0:time], prominence=0.05)
-        print(f"Scipy Peak of {up_peak}")
-        print(f"Scipy Peak Down of {down_peak}")
-
     def up3(self):
-        up_peak = signal.find_peaks(self.AccZ[0:200], prominence=0.05, height=0.02)
-        down_peak = signal.find_peaks(-self.AccZ[0:200], prominence=0.05)
-        print(f"Scipy Peak of {up_peak}")
-        print(f"Scipy Peak Down of {down_peak}")
-        for i in range(len(up_peak[1]['prominences'])):
-            print(f"At i {up_peak[1]['prominences'][i]}")
+
+        lifting_up_peak = signal.find_peaks(self.AccZ[0:200], prominence=0.05, height=0.02)
+        lifting_down_peak = signal.find_peaks(-self.AccZ[0:200], prominence=0.05)
+        j = 0.04
+        while len(lifting_up_peak[0]) < 1:
+            lifting_up_peak = signal.find_peaks(self.AccZ[0:200], prominence=j, height=0.02)
+            j = j - 0.01
+
+        k = 0.04
+        while len(lifting_down_peak[0]) < 1:
+            lifting_down_peak = signal.find_peaks(-self.AccZ[0:200], prominence=k)
+            k = k - 0.01
+
+        print(f"Scipy Peak of {lifting_up_peak}")
+        print(f"Scipy Peak Down of {lifting_down_peak}")
+        prom = 0
+        for i in range(len(lifting_up_peak[1]['prominences'])):
+            if lifting_up_peak[1]['prominences'][i] >= prom:
+                prom = lifting_up_peak[1]['prominences'][i]
+                location = lifting_up_peak[0][i]
+
+        print(f"UP3: Main Up Peak at {location} with Prom = {prom}")
+
+        prom = 0
+        for i in range(len(lifting_down_peak[1]['prominences'])):
+            if lifting_down_peak[1]['prominences'][i] >= prom:
+                prom = lifting_down_peak[1]['prominences'][i]
+                location = lifting_down_peak[0][i]
+
+        print(f"UP3: Main Down Peak at {location} with Prom = {prom}")
+
+        plt.plot(self.AccZ[0:200])
+        plt.show()
 
 
     def PhaseUp(self):
@@ -192,7 +213,18 @@ class DataTimeWarping:
         # prom = signal.peak_prominences(self.AccZ[-200:], up_peak[0])
         print(f"Put down peak at {up_peak}")
         print(f"{up_peak[0][0]} at {up_peak[1]['peak_heights'][0]}")
-        location = len(self.AccZ) - (210 - up_peak[0][0])
+
+        prom = 0
+        for i in range(len(up_peak[1]['prominences'])):
+            if up_peak[1]['prominences'][i] >= prom:
+                prom = up_peak[1]['prominences'][i]
+                peak_location = up_peak[0][i]
+
+        print(f"UP3: Main Up Peak at {peak_location} with Prom = {prom}")
+
+
+
+        location = len(self.AccZ) - (210 - peak_location)
         print(location)
         self.down_start = location
         # print(f"Prominences {prom}")
