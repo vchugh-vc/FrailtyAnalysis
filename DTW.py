@@ -32,7 +32,8 @@ class DataTimeWarping:
                                          1 / SAMPLE_FREQ)
         self.PhaseUp()
         # self.DTWDown()
-        self.DTWDown2()
+        # self.DTWDown2()
+        self.Down3()
         self.movement_stamps
         self.movement_phases()
 
@@ -63,13 +64,15 @@ class DataTimeWarping:
         data_range = 0
         while i < 300:
             distance = dtw.distance(self.AccZ[0:i], DTWAccZ)
-            print(f"From 0:{i}, the distance is {distance}")
+            # print(f"From 0:{i}, the distance is {distance}")
             if distance <= minimum:
                 minimum = distance
                 data_range = i
             i += 30
 
-        self.up_check(data_range)
+        print(f"From {data_range}, the distance is {distance}")
+
+        self.up3()
         plt.suptitle('Lifting Graph (Fast)')
         print(data_range)
         plt.plot(DTWAccZ, label='DTW')
@@ -92,11 +95,13 @@ class DataTimeWarping:
         data_range = 0
         while i < 300:
             distance = dtw.distance(self.AccZ[0:i], DTWAccZ)
-            print(f"From 0:{i}, the distance is {distance}")
+            # print(f"From 0:{i}, the distance is {distance}")
             if distance <= minimum:
                 minimum = distance
                 data_range = i
             i += 30
+
+        print(f"From {data_range}, the distance is {distance}")
 
         plt.suptitle('Lifting Graph (Slow)')
         print(data_range)
@@ -110,10 +115,19 @@ class DataTimeWarping:
 
     def up_check(self, time):
 
-        up_peak = signal.find_peaks(self.AccZ[0:time], distance=30, width=5)
-        down_peak = signal.find_peaks(-self.AccZ[0:time], distance=30, width=5)
-        print(f"Scipy Peak of {up_peak[0]}")
-        print(f"Scipy Peak Down of {down_peak[0]}")
+        up_peak = signal.find_peaks(self.AccZ[0:time], prominence=0.05, height=0.02)
+        down_peak = signal.find_peaks(-self.AccZ[0:time], prominence=0.05)
+        print(f"Scipy Peak of {up_peak}")
+        print(f"Scipy Peak Down of {down_peak}")
+
+    def up3(self):
+        up_peak = signal.find_peaks(self.AccZ[0:200], prominence=0.05, height=0.02)
+        down_peak = signal.find_peaks(-self.AccZ[0:200], prominence=0.05)
+        print(f"Scipy Peak of {up_peak}")
+        print(f"Scipy Peak Down of {down_peak}")
+        for i in range(len(up_peak[1]['prominences'])):
+            print(f"At i {up_peak[1]['prominences'][i]}")
+
 
     def PhaseUp(self):
 
@@ -138,11 +152,13 @@ class DataTimeWarping:
         data_range = 0
         while i < 500:
             distance = dtw.distance(self.AccZ[-i:], DTWAccZ)
-            print(f"From 0-{i}, the distance is {distance}")
+            # print(f"From 0-{i}, the distance is {distance}")
             if distance <= minimum:
                 minimum = distance
                 data_range = i
             i += 30
+
+        print(f"From {data_range}, the distance is {distance}")
 
         plt.suptitle('Putting Down Graph')
         print(data_range)
@@ -164,6 +180,23 @@ class DataTimeWarping:
         plt.suptitle('Putting Down Graph')
         print(data_range)
         self.down_start = len(self.AccZ) - data_range
+
+        plt.plot(self.AccZ[self.down_start:], label='IMU')
+        plt.legend()
+        plt.show()
+
+
+    def Down3(self):
+
+        up_peak = signal.find_peaks(self.AccZ[-200:], height=0.01, prominence=0.1)
+        # prom = signal.peak_prominences(self.AccZ[-200:], up_peak[0])
+        print(f"Put down peak at {up_peak}")
+        print(f"{up_peak[0][0]} at {up_peak[1]['peak_heights'][0]}")
+        location = len(self.AccZ) - (210 - up_peak[0][0])
+        print(location)
+        self.down_start = location
+        # print(f"Prominences {prom}")
+        plt.suptitle('Putting Down Graph')
         plt.plot(self.AccZ[self.down_start:], label='IMU')
         plt.legend()
         plt.show()
@@ -176,6 +209,13 @@ class DataTimeWarping:
         # plt.show()
 
         self.movement_stamps = [0, self.up_end, self.down_start, len(self.AccZ)]
+
+        for point in self.movement_stamps:
+            plt.axvline(x=point, color='r', linestyle='--', label=f'x = {point}')
+
+        plt.plot(self.AccZ)
+        plt.show()
+
 
         # for i in range(len(self.movement_stamps) - 1):
         #     print(f"{self.movement_stamps[i]} and {self.movement_stamps[i + 1]}")
