@@ -395,6 +395,8 @@ class Features:
         std_data = numpy.nanstd(array)
         var_data = numpy.nanvar(array)
 
+        lifting_data = self.lifting_peaks()
+
         dictionary['max'] = max_data
         dictionary['max time'] = max_time.item() * SAMPLE_TIME
         dictionary['min'] = min_data
@@ -402,6 +404,10 @@ class Features:
         dictionary['range'] = minmax_data
         dictionary['peak'] = peak_data
         dictionary['peak time'] = peak_time.item() * SAMPLE_TIME
+        dictionary['up peak'] = lifting_data[0]
+        dictionary['up peak time'] = lifting_data[1] * SAMPLE_TIME
+        dictionary['down peak'] = lifting_data[2]
+        dictionary['down peak time'] = lifting_data[3] * SAMPLE_TIME
         dictionary['rms'] = rms_data
         dictionary['std'] = std_data
         dictionary['var'] = var_data
@@ -594,3 +600,32 @@ class Features:
         # print(f"Arc Length {new_sal}, Frequ {f}, Magn. {Mf}")
         return [new_sal, (f, Mf), (f_sel, Mf_sel)]
 
+    def lifting_peaks(self):
+
+        lifting_up_peak = signal.find_peaks(self.AccZ[0:200], prominence=0.05, height=0.02)
+        lifting_down_peak = signal.find_peaks(-self.AccZ[0:200], prominence=0.05, height=0.001)
+        j = 0.04
+        while len(lifting_up_peak[0]) < 1:
+            lifting_up_peak = signal.find_peaks(self.AccZ[0:200], prominence=j, height=0.02)
+            j = j - 0.01
+
+        k = 0.04
+        while len(lifting_down_peak[0]) < 1:
+            lifting_down_peak = signal.find_peaks(-self.AccZ[0:200], prominence=k)
+            k = k - 0.01
+
+        up_prom = 0
+        for i in range(len(lifting_up_peak[1]['prominences'])):
+            if lifting_up_peak[1]['prominences'][i] >= up_prom:
+                up_prom = lifting_up_peak[1]['prominences'][i]
+                up_location = lifting_up_peak[0][i]
+                up_height = lifting_up_peak[1]['peak_heights'][i]
+
+        down_prom = 0
+        for i in range(len(lifting_down_peak[1]['prominences'])):
+            if lifting_down_peak[1]['prominences'][i] >= down_prom:
+                down_prom = lifting_down_peak[1]['prominences'][i]
+                down_location = lifting_down_peak[0][i]
+                down_height = lifting_down_peak[1]['peak_heights'][i]
+
+        return [up_height, up_location, down_height, down_location]
