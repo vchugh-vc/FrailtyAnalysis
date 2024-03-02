@@ -2,11 +2,21 @@ from FeatureClass import DataPreparation, Features
 import pandas as pd
 import numpy
 from scipy.signal import butter, lfilter
+from DTW import DataTimeWarping
+from FrailtyIndex import Frailty
 import matplotlib.pyplot as plt
 
 FilteredData = DataPreparation()
-DataFeatures = Features(FilteredData)
-SAMPLE_FREQ = FilteredData.Sample_Freq
+AccZ = FilteredData.AccZ_Trimmed
+AccX = FilteredData.AccX_Trimmed
+DTWPhases = DataTimeWarping(AccZ, AccX)
+up = [DTWPhases.movement_stamps[0], DTWPhases.movement_stamps[1]]
+middle = [DTWPhases.movement_stamps[2], DTWPhases.movement_stamps[3]]
+down = [DTWPhases.movement_stamps[3], DTWPhases.movement_stamps[4]]
+middle_data = Features(FilteredData, middle)
+up_data = Features(FilteredData, up)
+Frailty(up_data, 'up')
+Frailty(middle_data, 'middle')
 
 
 def butter_lowpass(cutoff, fs, order=5):
@@ -19,24 +29,22 @@ def butter_lowpass_filter(data, cutoff, fs, order=5):
     return y
 
 
-Jerk = DataFeatures.Jerk
-AccX = DataFeatures.AccX
-AccY = DataFeatures.AccY
-AccZ = DataFeatures.AccZ
-Jerk_RMS = numpy.sqrt(numpy.mean(Jerk ** 2))
-print(f"Average Jerk of Movement: {Jerk_RMS} m/s-3")
-print(f"Length of movemenet {len(Jerk)} at {DataFeatures.time}")
-print(f"Dominant Freq is {DataFeatures.FFTFreq}")
+# Jerk = DataFeatures.Jerk
+# AccX = DataFeatures.AccX
+# AccY = DataFeatures.AccY
+# AccZ = DataFeatures.AccZ
+# Jerk_RMS = numpy.sqrt(numpy.mean(Jerk ** 2))
+# print(f"Average Jerk of Movement: {Jerk_RMS} m/s-3")
+# print(f"Length of movemenet {len(Jerk)} at {DataFeatures.time}")
+# print(f"Dominant Freq is {DataFeatures.FFTFreq}")
 
-# Filters Noise from Signal, so that a cleaner signal is produced
-# Can be used for sending movement to EdgeImpulse
 
-new = butter_lowpass_filter(AccZ, DataFeatures.FFTFreq * 10, SAMPLE_FREQ, 6)
-plt.subplot(2, 1, 1)
-plt.plot(AccZ)
-plt.subplot(2, 1, 2)
-plt.plot(new)
-plt.show()
+# new = butter_lowpass_filter(FilteredData.AccZ_Trimmed, 5, 104, 6)
+# plt.subplot(2, 1, 1)
+# plt.plot(FilteredData.AccZ_Trimmed)
+# plt.subplot(2, 1, 2)
+# plt.plot(new)
+# plt.show()
 
 
 def minmax_spread(array):  # Returns Min-Max Data of an Array
@@ -49,3 +57,4 @@ def minmax_spread(array):  # Returns Min-Max Data of an Array
     var_data = numpy.nanvar(array)
     print(
         f"Max: {max_data}, Min: {min_data}, Range : {minmax_data}, Peak {peak_data}, RMS {rms_data}, STD {std_data}, Var {var_data}")
+
