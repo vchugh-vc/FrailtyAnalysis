@@ -22,12 +22,13 @@ SAMPLE_FREQ = 104
 
 class DataTimeWarping:
 
-    def __init__(self, signal):
+    def __init__(self, AccZ, AccX):
 
         self.movement_stamps = None
         self.up_end = None
         self.down_start = None
-        self.AccZ = signal
+        self.AccZ = AccZ
+        self.AccX = AccX
         self.trimmed_axis = numpy.arange(0, len(self.AccZ) / SAMPLE_FREQ,
                                          1 / SAMPLE_FREQ)
         self.PhaseUp()
@@ -241,6 +242,14 @@ class DataTimeWarping:
         # plt.show()
 
         self.movement_stamps = [0, self.up_end, self.down_start, len(self.AccZ)]
+        i = 20
+        while i <= 300:
+            Zgrad = numpy.gradient(self.AccZ[self.up_end + i :self.up_end + 20 + i])
+            Zgradient = numpy.mean(Zgrad) * 10000
+            Xgrad = numpy.gradient(self.AccX[self.up_end:self.up_end + i])
+            Xgradient = numpy.mean(Xgrad) * 10000
+            print(f"{self.up_end + i}:  X Grad {Xgradient} & Z Grad {Zgradient}")
+            i = i + 10
 
         for point in self.movement_stamps:
             plt.axvline(x=point, color='r', linestyle='--', label=f'x = {point}')
