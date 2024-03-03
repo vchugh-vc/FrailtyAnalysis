@@ -6,7 +6,9 @@ from scipy import signal
 
 SAMPLE_TIME = 0.0096
 SAMPLE_FREQ = 104
-SENSE = 0.015
+SENSE = 0.01
+SENSE_START = 0.015
+SENSE_STOP = 0.02
 
 
 
@@ -189,13 +191,13 @@ class DataPreparation:
         time_data = {}
 
         for i in range(4, len(self.SMV_roll)):
-            if (self.SMV_roll[i] > SENSE > self.SMV_roll[i - 4] and self.SMV_roll[i - 2] > SENSE and self.SMV_roll[
-                i - 1] > SENSE and self.SMV_roll[i - 3] > SENSE):
+            if (self.SMV_roll[i] > SENSE_START > self.SMV_roll[i - 4] and self.SMV_roll[i - 2] > SENSE_START and self.SMV_roll[
+                i - 1] > SENSE_START and self.SMV_roll[i - 3] > SENSE_START):
                 print(f"2 Started movement at {i * SAMPLE_TIME} : {i}")
                 time_data[i] = 'start'
 
-            elif self.SMV_roll[i] < SENSE < self.SMV_roll[i - 4] and self.SMV_roll[i - 2] < SENSE and self.SMV_roll[
-                i - 1] < SENSE and self.SMV_roll[i - 3] < SENSE:
+            elif self.SMV_roll[i] < SENSE_STOP < self.SMV_roll[i - 4] and self.SMV_roll[i - 2] < SENSE_STOP and self.SMV_roll[
+                i - 1] < SENSE_STOP and self.SMV_roll[i - 3] < SENSE_STOP:
                 print(f"2 Stopped movement at {i * SAMPLE_TIME} : {i}")
                 time_data[i] = "stop"
 
@@ -246,21 +248,31 @@ class DataPreparation:
 
         print(f"Clips {clips}")
 
+
+
         for i in range(min(len(clips), len(clips))):  # calculates the longest period of movement to select
             start_time = clips[i][0]
             stop_time = clips[i][1]
             duration = stop_time - start_time
             diff_movements[i] = {'duration': duration, 'start': start_time, 'stop': stop_time}
-            if duration > longest_duration:
-                longest_duration = duration
-                movement_start = start_time
-                movement_stop = stop_time
+
+            # if duration > longest_duration:
+            #     longest_duration = duration
+            #     movement_start = start_time
+            #     movement_stop = stop_time
+
+        movement_start = None
+        movement_stop = None
 
         for k, v in diff_movements.items():  # Calculates the SMV (RMS) value for each movement clip
             array = self.SMV[v['start']:v['stop']]
             array_rms = numpy.sqrt(numpy.mean(array ** 2))
             v['SMV'] = numpy.round(array_rms, 3)
             v['Movement'] = numpy.round(v['duration'] * v['SMV'], 3)
+            if movement_start is None and v['Movement'] > 10:
+                movement_start = v['start']
+            if v['Movement'] > 10:
+                movement_stop = v['stop']
 
         print(diff_movements)
         print(
@@ -611,7 +623,7 @@ class Features:
 
         k = 0.04
         while len(lifting_down_peak[0]) < 1:
-            lifting_down_peak = signal.find_peaks(-self.AccZ[0:200], prominence=k)
+            lifting_down_peak = signal.find_peaks(-self.AccZ[0:200], prominence=k, height=0.001)
             k = k - 0.01
 
         up_prom = 0
