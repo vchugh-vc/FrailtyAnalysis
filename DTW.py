@@ -251,9 +251,12 @@ class DataTimeWarping:
             Xgrad = numpy.gradient(self.AccX[self.DTW_up_end:self.DTW_up_end + i])
             Xgradient = numpy.mean(Xgrad) * 10000
             print(f"{self.DTW_up_end + i}:  X Grad {Xgradient} & Z Grad {Zgradient}")
+
+            if Xgradient > 0 and Zgradient < -10:
+                self.pour_start = self.DTW_up_end + i
+                return
             i = i + 10
 
-        self.pour_start = self.DTW_up_end + 50
 
     def movement_phases(self):
 
