@@ -120,8 +120,9 @@ class DataTimeWarping:
 
     def Up_Peaks(self, start_range=200):
 
-        lifting_up_peak = signal.find_peaks(self.AccZ[0:start_range], prominence=0.05, height=0.02)
-        lifting_down_peak = signal.find_peaks(-self.AccZ[0:start_range], prominence=0.05)
+        lifting_up_peak = signal.find_peaks(self.AccZ[0:start_range], prominence=0.04, height=0.02)
+        lifting_down_peak = signal.find_peaks(-self.AccZ[0:start_range], prominence=0.04, height=0.01)
+
         j = 0.04
         while len(lifting_up_peak[0]) < 1:
             lifting_up_peak = signal.find_peaks(self.AccZ[0:start_range], prominence=j, height=0.02)
@@ -145,7 +146,7 @@ class DataTimeWarping:
 
         prom = 0
         for i in range(len(lifting_down_peak[1]['prominences'])):
-            if lifting_down_peak[1]['prominences'][i] >= prom:
+            if lifting_down_peak[1]['prominences'][i] >= prom and lifting_down_peak[0][i] > self.lifting_up_peak:
                 prom = lifting_down_peak[1]['prominences'][i]
                 location = lifting_down_peak[0][i]
 
@@ -168,7 +169,7 @@ class DataTimeWarping:
 
         if self.lifting_down_peak < self.lifting_up_peak:
             print(f"Rerunning Peaks Algorithm")
-            self.Up_Peaks(start_range=250)
+            self.Up_Peaks(start_range=300)
 
 
         if self.lifting_down_peak > self.DTW_up_end:
@@ -227,14 +228,13 @@ class DataTimeWarping:
 
         prom = 0
         for i in range(len(up_peak[1]['prominences'])):
-            if up_peak[1]['prominences'][i] >= prom:
+            if up_peak[1]['prominences'][i] >= prom and up_peak[1]['left_bases'][i] > 5:
                 prom = up_peak[1]['prominences'][i]
                 peak_location = up_peak[0][i]
 
         print(f"UP3: Main Up Peak at {peak_location} with Prom = {prom}")
 
         location = len(self.AccZ) - (210 - peak_location)
-        print(location)
         self.down_start = location
         # print(f"Prominences {prom}")
         plt.suptitle('Putting Down Graph')
@@ -252,10 +252,12 @@ class DataTimeWarping:
             Xgradient = numpy.mean(Xgrad) * 10000
             print(f"{self.DTW_up_end + i}:  X Grad {Xgradient} & Z Grad {Zgradient}")
 
-            if Xgradient > 0 and Zgradient < -10:
+            if Zgradient < -10:
                 self.pour_start = self.DTW_up_end + i
                 return
             i = i + 10
+            if i == 300:
+                self.pour_start = self.DTW_up_end + 10
 
 
     def movement_phases(self):
@@ -265,9 +267,11 @@ class DataTimeWarping:
         # plt.plot(AccZ[self.up_end:self.down_start])
         # plt.show()
 
-        self.movement_stamps = [0, self.DTW_up_end, self.pour_start, self.down_start, len(self.AccZ)]
+        self.movement_stamps = [0,self.lifting_up_peak, self.lifting_down_peak, self.DTW_up_end, self.pour_start, self.down_start, len(self.AccZ)]
 
-        for point in self.movement_stamps:
+        graph = [0, self.DTW_up_end, self.pour_start, self.down_start, len(self.AccZ)]
+
+        for point in graph:
             plt.axvline(x=point, color='r', linestyle='--', label=f'x = {point}')
 
         plt.plot(self.AccZ)
@@ -276,4 +280,4 @@ class DataTimeWarping:
         # for i in range(len(self.movement_stamps) - 1):
         #     print(f"{self.movement_stamps[i]} and {self.movement_stamps[i + 1]}")
 
-        print(self.movement_stamps)
+        print(graph)
