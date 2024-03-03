@@ -8,7 +8,7 @@ SAMPLE_TIME = 0.0096
 SAMPLE_FREQ = 104
 SENSE = 0.01
 SENSE_START = 0.015
-SENSE_STOP = 0.02
+SENSE_STOP = 0.015
 
 
 
@@ -269,7 +269,7 @@ class DataPreparation:
             array_rms = numpy.sqrt(numpy.mean(array ** 2))
             v['SMV'] = numpy.round(array_rms, 3)
             v['Movement'] = numpy.round(v['duration'] * v['SMV'], 3)
-            if movement_start is None and v['Movement'] > 10:
+            if movement_start is None and v['Movement'] > 20:
                 movement_start = v['start']
             if v['Movement'] > 10:
                 movement_stop = v['stop']
@@ -296,9 +296,10 @@ class DataPreparation:
 
 class Features:
 
-    def __init__(self, ProcessedData, timestamps):
+    def __init__(self, ProcessedData, timestamps, label):
 
         self.score = None
+        self.label = label
         self.RawAccX = ProcessedData.AccX_Trimmed
         self.RawAccY = ProcessedData.AccY_Trimmed
         self.RawAccZ = ProcessedData.AccZ_Trimmed
@@ -310,16 +311,24 @@ class Features:
         self.RawRoll = ProcessedData.Roll_Trimmed
         self.RawPitch = ProcessedData.Pitch_Trimmed
 
-        self.AccX = self.RawAccX[timestamps[0]:timestamps[1]]
-        self.AccY = self.RawAccY[timestamps[0]:timestamps[1]]
-        self.AccZ = self.RawAccZ[timestamps[0]:timestamps[1]]
-        self.SMV = self.RawSMV[timestamps[0]:timestamps[1]]
-        self.Jerk = self.RawJerk[timestamps[0]:timestamps[1]]
-        self.GyroX = self.RawGyroX[timestamps[0]:timestamps[1]]
-        self.GyroY = self.RawGyroY[timestamps[0]:timestamps[1]]
-        self.GyroZ = self.RawGyroZ[timestamps[0]:timestamps[1]]
-        self.Roll = self.RawRoll[timestamps[0]:timestamps[1]]
-        self.Pitch = self.RawPitch[timestamps[0]:timestamps[1]]
+        self.timestamps = timestamps
+        if self.label == 'up':
+            self.start = timestamps[0]
+            self.stop = timestamps[3]
+        else:
+            self.start = timestamps[4]
+            self.stop = timestamps[5]
+
+        self.AccX = self.RawAccX[self.start:self.stop]
+        self.AccY = self.RawAccY[self.start:self.stop]
+        self.AccZ = self.RawAccZ[self.start:self.stop]
+        self.SMV = self.RawSMV[self.start:self.stop]
+        self.Jerk = self.RawJerk[self.start:self.stop]
+        self.GyroX = self.RawGyroX[self.start:self.stop]
+        self.GyroY = self.RawGyroY[self.start:self.stop]
+        self.GyroZ = self.RawGyroZ[self.start:self.stop]
+        self.Roll = self.RawRoll[self.start:self.stop]
+        self.Pitch = self.RawPitch[self.start:self.stop]
 
         self.SparcX = self.sparc(self.GyroZ)
         self.SparcY = self.sparc(self.GyroX)
@@ -331,7 +340,8 @@ class Features:
         self.time = len(self.SMV) * SAMPLE_TIME
         self.trimmed_axis = numpy.arange(0, len(self.AccX) / SAMPLE_FREQ,
                                          1 / SAMPLE_FREQ)
-        self.graph_trimmed()
+        # self.graph_trimmed()
+
         self.FFTFreq = 0
 
         self.x_features = {}
@@ -339,8 +349,9 @@ class Features:
         self.z_features = {}
         self.SMV_features = {}
         self.roll_features = {}
+        self.frequency_calc()
 
-        self.data_extraction(self.SMV, self.SMV_features)
+        # self.data_extraction(self.SMV, self.SMV_features)
         self.data_extraction(self.AccZ, self.z_features)
         self.data_extraction(self.AccY, self.y_features)
         self.data_extraction(self.AccX, self.x_features)
@@ -349,7 +360,7 @@ class Features:
         self.output2 = {}
 
         self.dictionary_combine()
-        self.angle_graph()
+        # self.angle_graph()
 
     def graph_trimmed(self):  # graphs the sections that have been trimmed by the movement filter
 
@@ -407,7 +418,8 @@ class Features:
         std_data = numpy.nanstd(array)
         var_data = numpy.nanvar(array)
 
-        lifting_data = self.lifting_peaks()
+        if self.label == 'middle':
+            lifting_data = [0,0,0,0]
 
         dictionary['max'] = max_data
         dictionary['max time'] = max_time.item() * SAMPLE_TIME
@@ -416,14 +428,15 @@ class Features:
         dictionary['range'] = minmax_data
         dictionary['peak'] = peak_data
         dictionary['peak time'] = peak_time.item() * SAMPLE_TIME
-        dictionary['up peak'] = lifting_data[0]
-        dictionary['up peak time'] = lifting_data[1] * SAMPLE_TIME
-        dictionary['down peak'] = lifting_data[2]
-        dictionary['down peak time'] = lifting_data[3] * SAMPLE_TIME
+        dictionary['up peak'] = self.AccZ[self.timestamps[1]] * SAMPLE_TIME
+        dictionary['up peak time'] = self.timestamps[1]
+        dictionary['down peak'] = self.AccZ[self.timestamps[2]] * SAMPLE_TIME
+        dictionary['down peak time'] = self.timestamps[2]
         dictionary['rms'] = rms_data
         dictionary['std'] = std_data
         dictionary['var'] = var_data
         dictionary['length'] = len(self.AccZ)
+        dictionary['freq'] = self.FFTFreq
 
     def data_extraction(self, array, dictionary):
         self.minmax_spread(array, dictionary)
@@ -552,6 +565,7 @@ class Features:
         x_freq = numpy.abs(fft_freq)
         y_fft = numpy.abs(fft_out)
 
+
         # Plotting IMU angle through Time
 
         # Plotting Frequency Amplitude (FFT)
@@ -612,32 +626,3 @@ class Features:
         # print(f"Arc Length {new_sal}, Frequ {f}, Magn. {Mf}")
         return [new_sal, (f, Mf), (f_sel, Mf_sel)]
 
-    def lifting_peaks(self):
-
-        lifting_up_peak = signal.find_peaks(self.AccZ[0:200], prominence=0.05, height=0.02)
-        lifting_down_peak = signal.find_peaks(-self.AccZ[0:200], prominence=0.05, height=0.001)
-        j = 0.04
-        while len(lifting_up_peak[0]) < 1:
-            lifting_up_peak = signal.find_peaks(self.AccZ[0:200], prominence=j, height=0.02)
-            j = j - 0.01
-
-        k = 0.04
-        while len(lifting_down_peak[0]) < 1:
-            lifting_down_peak = signal.find_peaks(-self.AccZ[0:200], prominence=k, height=0.001)
-            k = k - 0.01
-
-        up_prom = 0
-        for i in range(len(lifting_up_peak[1]['prominences'])):
-            if lifting_up_peak[1]['prominences'][i] >= up_prom:
-                up_prom = lifting_up_peak[1]['prominences'][i]
-                up_location = lifting_up_peak[0][i]
-                up_height = lifting_up_peak[1]['peak_heights'][i]
-
-        down_prom = 0
-        for i in range(len(lifting_down_peak[1]['prominences'])):
-            if lifting_down_peak[1]['prominences'][i] >= down_prom:
-                down_prom = lifting_down_peak[1]['prominences'][i]
-                down_location = lifting_down_peak[0][i]
-                down_height = lifting_down_peak[1]['peak_heights'][i]
-
-        return [up_height, up_location, down_height, down_location]
