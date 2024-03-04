@@ -42,6 +42,7 @@ class DataPreparation:
 
     def __init__(self):
 
+
         filename = "IMUData.csv"
         plt.rcParams["figure.autolayout"] = True
         df = pd.read_csv(filename)
@@ -62,6 +63,8 @@ class DataPreparation:
         self.GyroX_Trimmed = None
         self.GyroY_Trimmed = None
         self.GyroZ_Trimmed = None
+        self.Pitch_Trimmed = None
+        self.Roll_Trimmed = None
         self.AccX = self.ButterFilter(IMUAccX)
         self.AccY = self.ButterFilter(IMUAccY)  # Gravity Filtered IMU Data
         self.AccZ = self.ButterFilter(IMUAccZ)
@@ -426,10 +429,10 @@ class Features:
         dictionary['range'] = minmax_data
         dictionary['peak'] = peak_data
         dictionary['peak time'] = peak_time.item() * SAMPLE_TIME
-        dictionary['up peak'] = self.AccZ[self.timestamps[1]] * SAMPLE_TIME
-        dictionary['up peak time'] = self.timestamps[1]
-        dictionary['down peak'] = self.AccZ[self.timestamps[2]] * SAMPLE_TIME
-        dictionary['down peak time'] = self.timestamps[2]
+        dictionary['up peak'] = self.AccZ[self.timestamps[1]]
+        dictionary['up peak time'] = self.timestamps[1] * SAMPLE_TIME
+        dictionary['down peak'] = self.AccZ[self.timestamps[2]]
+        dictionary['down peak time'] = self.timestamps[2] * SAMPLE_TIME
         dictionary['rms'] = rms_data
         dictionary['std'] = std_data
         dictionary['var'] = var_data

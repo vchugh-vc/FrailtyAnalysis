@@ -11,13 +11,17 @@ class Frailty:
 
         if self.label == 'up':
 
-            lift_delta =  self.Parameters['Zmin time'] - self.Parameters['Zmax time']
+            print("\n----- UP Data -----")
+            lift_delta = self.Parameters['Zdown peak time'] - self.Parameters['Zup peak time']
             print(f"{self.Parameters['Zpeak']} Peak Z")
             print(f"{lift_delta} Lift Delta")
             print(f"{self.Parameters['SPARC RMS']} SPARC of Movement")
             print(f"{self.Parameters['Rollrange']} Roll Range")
+            print(f"{self.Parameters['Zfreq']} Frequency")
 
         elif self.label == 'middle':
+            print("\n----- Middle Data -----")
             print(f"{self.Parameters['Zlength']} Pouring Length")
             print(f"{self.Parameters['Zpeak']} Peak Z")
             print(f"{self.Parameters['SPARC RMS']} SPARC of Movement")
+            print(f"{self.Parameters['Zfreq']} Frequency")
