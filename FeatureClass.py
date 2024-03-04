@@ -298,7 +298,6 @@ class Features:
 
     def __init__(self, ProcessedData, timestamps, label):
 
-        self.score = None
         self.label = label
         self.RawAccX = ProcessedData.AccX_Trimmed
         self.RawAccY = ProcessedData.AccY_Trimmed
@@ -347,11 +346,10 @@ class Features:
         self.x_features = {}
         self.y_features = {}
         self.z_features = {}
-        self.SMV_features = {}
         self.roll_features = {}
         self.frequency_calc()
+        self.freq_calc_2()
 
-        # self.data_extraction(self.SMV, self.SMV_features)
         self.data_extraction(self.AccZ, self.z_features)
         self.data_extraction(self.AccY, self.y_features)
         self.data_extraction(self.AccX, self.x_features)
@@ -465,69 +463,6 @@ class Features:
         self.output2['SPARC Z'] = self.SparcZ[0]
         self.output2['SPARC RMS'] = self.SPARC_RMS
 
-    def features_graph(self):
-
-        plt.subplot(3, 1, 1)
-        plt.plot(self.x_features['rms'], label="X")
-        plt.plot(self.y_features['rms'], label="Y")
-        plt.plot(self.z_features['rms'], label="Z")
-        plt.plot(self.SMV_features['rms'], label="SMV")
-        plt.ylim(-0.1, 0.5)
-        plt.title("RMS of Data")
-        plt.legend(loc=1)
-        plt.subplot(3, 1, 2)
-        plt.plot(self.x_features['var'], label="X")
-        plt.plot(self.y_features['var'], label="Y")
-        plt.plot(self.z_features['var'], label="Z")
-        plt.plot(self.SMV_features['var'], label="SMV")
-        plt.ylim(-0.005, 0.03)
-        plt.title("VAR of Data")
-        plt.legend(loc=1)
-        plt.subplot(3, 1, 3)
-        plt.plot(self.x_features['std'], label="X")
-        plt.plot(self.y_features['std'], label="Y")
-        plt.plot(self.z_features['std'], label="Z")
-        plt.plot(self.SMV_features['std'], label="SMV")
-        plt.ylim(-0.05, 0.15)
-        plt.title("STD of Data")
-        plt.legend(loc=1)
-        plt.show()
-
-    def features_graph2(self):
-
-        plt.subplot(4, 1, 1)
-        plt.plot(self.x_features['max'], label="X")
-        plt.plot(self.y_features['max'], label="Y")
-        plt.plot(self.z_features['max'], label="Z")
-        plt.plot(self.SMV_features['max'], label="SMV")
-        plt.ylim(-1, 1.5)
-        plt.title("Max of Data")
-        plt.legend(loc=1)
-        plt.subplot(4, 1, 2)
-        plt.plot(self.x_features['min'], label="X")
-        plt.plot(self.y_features['min'], label="Y")
-        plt.plot(self.z_features['min'], label="Z")
-        plt.plot(self.SMV_features['min'], label="SMV")
-        plt.ylim(-1, 1)
-        plt.title("Min of Data")
-        plt.legend(loc=1)
-        plt.subplot(4, 1, 3)
-        plt.plot(self.x_features['minmax'], label="X")
-        plt.plot(self.y_features['minmax'], label="Y")
-        plt.plot(self.z_features['minmax'], label="Z")
-        plt.plot(self.SMV_features['minmax'], label="SMV")
-        plt.ylim(-0.2, 1.5)
-        plt.title("MinMax of Data")
-        plt.legend(loc=1)
-        plt.subplot(4, 1, 4)
-        plt.plot(self.x_features['peak'], label="X")
-        plt.plot(self.y_features['peak'], label="Y")
-        plt.plot(self.z_features['peak'], label="Z")
-        plt.plot(self.SMV_features['peak'], label="SMV")
-        plt.ylim(-0.2, 1)
-        plt.title("Peak of Data")
-        plt.legend(loc=1)
-        plt.show()
 
     def frequency_calc(self):
 
@@ -545,17 +480,18 @@ class Features:
         # Plotting IMU angle through Time
 
         # Plotting Frequency Amplitude (FFT)
-        plt.subplot(1, 1, 1)
-        plt.plot(x_freq, y_fft, 'b', label='mean smv')
-        plt.xlabel("Frequency (Hz)")
-        plt.ylabel("Frequency Amplitude")
-        plt.xlim(right=20)
-        plt.xlim(left=-1)
+        # plt.subplot(1, 1, 1)
+        # plt.plot(x_freq, y_fft, 'b', label='mean smv')
+        # plt.xlabel("Frequency (Hz)")
+        # plt.ylabel("Frequency Amplitude")
+        # plt.xlim(right=20)
+        # plt.xlim(left=-1)
+        # plt.show()
 
         # Prints the dominate frequency
         y_max = numpy.argmax(y_fft)
         x_max = x_freq[y_max]
-        print(f"Frequency is {x_max}")
+        # print(f"Frequency is {x_max}")
         self.FFTFreq = x_max
 
     def freq_calc_2(self):
@@ -565,18 +501,24 @@ class Features:
         x_freq = numpy.abs(fft_freq)
         y_fft = numpy.abs(fft_out)
 
+        y_max = numpy.argmax(y_fft)
+        x_max = x_freq[y_max]
+        # print(f"Frequency is {x_max}")
+        print(f"New Freq Calc {self.label}: {x_max}")
+
 
         # Plotting IMU angle through Time
 
         # Plotting Frequency Amplitude (FFT)
-        plt.subplot(1, 1, 1)
-        plt.plot(x_freq, y_fft, 'r', label="normal single axis")
-        plt.xlabel("Frequency (Hz)")
-        plt.ylabel("Frequency Amplitude")
-        plt.xlim(right=20)
-        plt.xlim(left=-1)
-        plt.legend()
-        plt.show()
+        # plt.subplot(1, 1, 1)
+        # plt.plot(x_freq, y_fft, 'r', label="normal single axis")
+        # plt.xlabel("Frequency (Hz)")
+        # plt.ylabel("Frequency Amplitude")
+        # plt.xlim(right=20)
+        # plt.xlim(left=-1)
+        # plt.legend()
+        # plt.show()
+
 
     def angle_graph(self):  # graphs the sections that have been trimmed by the movement filter
 

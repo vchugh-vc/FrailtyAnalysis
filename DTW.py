@@ -224,7 +224,7 @@ class DataTimeWarping:
         up_peak = signal.find_peaks(self.AccZ[-200:], height=0.01, prominence=0.1)
         # prom = signal.peak_prominences(self.AccZ[-200:], up_peak[0])
         print(f"Put down peak at {up_peak}")
-        print(f"{up_peak[0][0]} at {up_peak[1]['peak_heights'][0]}")
+        # print(f"{up_peak[0][0]} at {up_peak[1]['peak_heights'][0]}")
 
         prom = 0
         for i in range(len(up_peak[1]['prominences'])):
@@ -232,7 +232,7 @@ class DataTimeWarping:
                 prom = up_peak[1]['prominences'][i]
                 peak_location = up_peak[0][i]
 
-        print(f"UP3: Main Up Peak at {peak_location} with Prom = {prom}")
+        # print(f"DownPeaks: Main Up Peak at {peak_location} with Prom = {prom}")
 
         location = len(self.AccZ) - (210 - peak_location)
         self.down_start = location
@@ -269,9 +269,9 @@ class DataTimeWarping:
 
         self.movement_stamps = [0,self.lifting_up_peak, self.lifting_down_peak, self.DTW_up_end, self.pour_start, self.down_start, len(self.AccZ)]
 
-        graph = [0, self.DTW_up_end, self.pour_start, self.down_start, len(self.AccZ)]
+        phase_stamps = [0, self.DTW_up_end, self.pour_start, self.down_start, len(self.AccZ)]
 
-        for point in graph:
+        for point in phase_stamps:
             plt.axvline(x=point, color='r', linestyle='--', label=f'x = {point}')
 
         plt.plot(self.AccZ)
@@ -280,4 +280,4 @@ class DataTimeWarping:
         # for i in range(len(self.movement_stamps) - 1):
         #     print(f"{self.movement_stamps[i]} and {self.movement_stamps[i + 1]}")
 
-        print(graph)
+        print(f"Phases: {phase_stamps}")
