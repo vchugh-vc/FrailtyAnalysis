@@ -9,6 +9,7 @@ FilteredData = DataPreparation()
 DataFeatures = Features(FilteredData)
 SAMPLE_FREQ = FilteredData.Sample_Freq
 
+SAMPLE_FREQ = 104
 
 
 def sparc(movement, fs, padlevel=4, fc=10.0, amp_th=0.05):
@@ -80,9 +81,9 @@ def sparc(movement, fs, padlevel=4, fc=10.0, amp_th=0.05):
     new_sal = -sum(np.sqrt(pow(np.diff(f_sel) / (f_sel[-1] - f_sel[0]), 2) +
                            pow(np.diff(Mf_sel), 2)))
 
-    plt.subplot(2,1,1)
+    plt.subplot(2, 1, 1)
     plt.plot(f, Mf)
-    plt.xlim(-1,20)
+    plt.xlim(-1, 20)
     plt.subplot(2, 1, 2)
     plt.plot(f_sel, Mf_sel)
     plt.xlim(-1, 20)
@@ -91,13 +92,16 @@ def sparc(movement, fs, padlevel=4, fc=10.0, amp_th=0.05):
     # print(f"Arc Length {new_sal}, Frequ {f}, Magn. {Mf}")
     return [new_sal, (f, Mf), (f_sel, Mf_sel)]
 
+
 plt.plot(DataFeatures.trimmed_axis, DataFeatures.GyroX, label='X')
 plt.plot(DataFeatures.trimmed_axis, DataFeatures.GyroY, label='Y')
 plt.plot(DataFeatures.trimmed_axis, DataFeatures.GyroZ, label='Z')
+plt.legend()
 plt.show()
 
-SparcY = sparc(DataFeatures.GyroY, SAMPLE_FREQ)
-SparcX = sparc(DataFeatures.GyroX, SAMPLE_FREQ)
-SparcZ = sparc(DataFeatures.GyroZ, SAMPLE_FREQ)
+SparcX = sparc(DataFeatures.GyroX, fs=104)
+SparcY = sparc(DataFeatures.GyroY, fs=104)
+SparcZ = sparc(DataFeatures.GyroZ, fs=104)
+SPARC_RMS = (SparcZ[0] + SparcX[0] + SparcY[0]) / 3
 
-print(f"X = {SparcX[0]}, Y = {SparcY[0]}, Z = {SparcZ[0]}")
+print(f"Total = {SPARC_RMS}, X = {SparcX[0]}, Y = {SparcY[0]}, Z = {SparcZ[0]}")
