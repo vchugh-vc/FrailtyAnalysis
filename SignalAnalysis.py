@@ -6,7 +6,9 @@ from DTW import DataTimeWarping
 from FrailtyIndex import Frailty
 import matplotlib.pyplot as plt
 
-FilteredData = DataPreparation()
+FILE = 'IMUData.csv'
+
+FilteredData = DataPreparation(file=FILE)
 AccZ = FilteredData.AccZ_Trimmed
 AccX = FilteredData.AccX_Trimmed
 DTWPhases = DataTimeWarping(AccZ, AccX)
