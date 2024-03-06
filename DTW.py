@@ -118,7 +118,7 @@ class DataTimeWarping:
 
         return [data_range, minimum]
 
-    def Up_Peaks(self, start_range=200):
+    def Up_Peaks(self, start_range=150):
 
         lifting_up_peak = signal.find_peaks(self.AccZ[0:start_range], prominence=0.04, height=0.02)
         lifting_down_peak = signal.find_peaks(-self.AccZ[0:start_range], prominence=0.04, height=0.01)
@@ -221,7 +221,7 @@ class DataTimeWarping:
 
     def Down_Peaks(self):
 
-        up_peak = signal.find_peaks(self.AccZ[-200:], height=0.01, prominence=0.1)
+        up_peak = signal.find_peaks(self.AccZ[-150:], height=0.01, prominence=0.1)
         # prom = signal.peak_prominences(self.AccZ[-200:], up_peak[0])
         print(f"Put down peak at {up_peak}")
         # print(f"{up_peak[0][0]} at {up_peak[1]['peak_heights'][0]}")
@@ -234,7 +234,7 @@ class DataTimeWarping:
 
         # print(f"DownPeaks: Main Up Peak at {peak_location} with Prom = {prom}")
 
-        location = len(self.AccZ) - (210 - peak_location)
+        location = len(self.AccZ) - (160 - peak_location)
         self.down_start = location
         # print(f"Prominences {prom}")
         plt.suptitle('Putting Down Graph')
