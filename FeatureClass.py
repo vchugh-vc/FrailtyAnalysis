@@ -10,7 +10,7 @@ SENSE = 0.01
 SENSE_START = 0.015
 SENSE_STOP = 0.015
 
-
+IMUFile = 'IMUData.csv'
 
 
 def starting():
@@ -40,10 +40,9 @@ def starting():
 
 class DataPreparation:
 
-    def __init__(self):
+    def __init__(self, file=IMUFile):
 
-
-        filename = "IMUData.csv"
+        filename = file
         plt.rcParams["figure.autolayout"] = True
         df = pd.read_csv(filename)
         IMUAccY = df['AccY']
@@ -112,7 +111,6 @@ class DataPreparation:
             print(f"Acc = {len(self.AccX)} and Time {len(self.time_axis)}")
 
         if len(self.AccX) == len(self.time_axis):
-
             plt.suptitle('Raw Movement Graph')
             plt.subplot(3, 1, 1)
             plt.plot(self.time_axis, self.AccX, label="X")
@@ -194,13 +192,15 @@ class DataPreparation:
         time_data = {}
 
         for i in range(4, len(self.SMV_roll)):
-            if (self.SMV_roll[i] > SENSE_START > self.SMV_roll[i - 4] and self.SMV_roll[i - 2] > SENSE_START and self.SMV_roll[
-                i - 1] > SENSE_START and self.SMV_roll[i - 3] > SENSE_START):
+            if (self.SMV_roll[i] > SENSE_START > self.SMV_roll[i - 4] and self.SMV_roll[i - 2] > SENSE_START and
+                    self.SMV_roll[
+                        i - 1] > SENSE_START and self.SMV_roll[i - 3] > SENSE_START):
                 print(f"2 Started movement at {i * SAMPLE_TIME} : {i}")
                 time_data[i] = 'start'
 
-            elif self.SMV_roll[i] < SENSE_STOP < self.SMV_roll[i - 4] and self.SMV_roll[i - 2] < SENSE_STOP and self.SMV_roll[
-                i - 1] < SENSE_STOP and self.SMV_roll[i - 3] < SENSE_STOP:
+            elif self.SMV_roll[i] < SENSE_STOP < self.SMV_roll[i - 4] and self.SMV_roll[i - 2] < SENSE_STOP and \
+                    self.SMV_roll[
+                        i - 1] < SENSE_STOP and self.SMV_roll[i - 3] < SENSE_STOP:
                 print(f"2 Stopped movement at {i * SAMPLE_TIME} : {i}")
                 time_data[i] = "stop"
 
@@ -232,11 +232,10 @@ class DataPreparation:
 
         time_data_order = {key: value for key, value in time_data_sorted}  # new ordered dictionary of time stamps
 
-
         keys = list(time_data_order.keys())
         values = list(time_data_order.values())
 
-        status = None # checks for sequence of starts and stops
+        status = None  # checks for sequence of starts and stops
         for timestamp, event in time_data_order.items():
             if event == 'start':
                 start_time = timestamp
@@ -250,8 +249,6 @@ class DataPreparation:
         #         clips.append(keys[i:i + len(sequence)])
 
         print(f"Clips {clips}")
-
-
 
         for i in range(min(len(clips), len(clips))):  # calculates the longest period of movement to select
             start_time = clips[i][0]
@@ -420,7 +417,7 @@ class Features:
         var_data = numpy.nanvar(array)
 
         if self.label == 'middle':
-            lifting_data = [0,0,0,0]
+            lifting_data = [0, 0, 0, 0]
 
         dictionary['max'] = max_data
         dictionary['max time'] = max_time.item() * SAMPLE_TIME
@@ -466,7 +463,6 @@ class Features:
         self.output2['SPARC Z'] = self.SparcZ[0]
         self.output2['SPARC RMS'] = self.SPARC_RMS
 
-
     def frequency_calc(self):
 
         fft_array = []
@@ -509,7 +505,6 @@ class Features:
         # print(f"Frequency is {x_max}")
         print(f"New Freq Calc {self.label}: {x_max}")
 
-
         # Plotting IMU angle through Time
 
         # Plotting Frequency Amplitude (FFT)
@@ -521,7 +516,6 @@ class Features:
         # plt.xlim(left=-1)
         # plt.legend()
         # plt.show()
-
 
     def angle_graph(self):  # graphs the sections that have been trimmed by the movement filter
 
@@ -570,4 +564,3 @@ class Features:
 
         # print(f"Arc Length {new_sal}, Frequ {f}, Magn. {Mf}")
         return [new_sal, (f, Mf), (f_sel, Mf_sel)]
-
