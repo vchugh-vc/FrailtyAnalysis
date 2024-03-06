@@ -2,13 +2,25 @@
 
 Python Files used for Signal Processing (from an IMU) and for Extracting Features for Frailty Analysis
 
-**DataLogger** : File for Extracting data from IMU and exporting to a CSV (Pitch,Roll,AccY,AccX,AccZ,GyroX,GyroY,GyroZ)
+**FrailtyIndex** Calculates Frailty Score from Specific Parameters
 
-**FeatureClass** : Extracting Key Features from Data (Max, Min, Range, RMS, STD, VAR, SMV, Frequency) and Jerk for Analysis
+**FeatureClass** : Contains Class for Data Pre-Processing (Filtration of Noise and Movement) and Class for Processing and Extracting Parameters Related to Frailty
 
-**SignalAnalysis** : Frailty Index Calculator (Processing Key Parameters from FeaturesClass)
+**SignalAnalysis** : Analyses Signal (from a given CSV) using FrailtyClass and FrailtyIndex
 
-**FeatureExtraction** : Runs FeatureClass using existing IMU Data (from DataLogger) and outputs to CSV (Database for ML Training)
+**MQTT** : Enables MQTT Server for Receiving Data from Nearable Device
+
+**DTW**: Segments Signal into different movement phases, using DTW and Peaks Algorithm
+
+**Main** : Runs MQTT, Feature Class & Frailty Index to Receive and Analyse Signal immediately
+
+**DataRecorder** : Receives Data (through MQTT) and stores data in CSV File
+
+**SPARC** : (Legacy) Calculates Spectral Arc Length of Signal, which is being called in FeatureClass
+
+**FeatureExtraction** : (Legacy) Runs FeatureClass using existing IMU Data (from DataLogger) and outputs to CSV (Database for ML Training)
+
+**WireDataLogger** : (Legacy) File for Extracting data from IMU and exporting to a CSV (Pitch,Roll,AccY,AccX,AccZ,GyroX,GyroY,GyroZ)
 
 **FFT Analysis** : (Legacy) Fast Fourier Transform Function resulting in spectral analysis of IMU Data
 
