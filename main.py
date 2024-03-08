@@ -12,5 +12,4 @@ if __name__ == "__main__":
     TimeStamps = DTWPhases.movement_stamps
     up_data = Features(FilteredData, TimeStamps, 'up')
     middle_data = Features(FilteredData, TimeStamps, 'middle')
-    Frailty(up_data, 'up')
-    Frailty(middle_data, 'middle')
+    Frailty(up_data, middle_data)

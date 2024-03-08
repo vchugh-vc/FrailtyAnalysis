@@ -1,27 +1,51 @@
 class Frailty:
 
-    def __init__(self, parameters, label):
+    def __init__(self, up_data, middle_data):
 
-        self.Parameters = parameters.output2
-        self.label = label
-        self.score = 0
-        self.FrailtyIndex()
+        self.UpParameters = up_data.output2
+        self.MiddleParameters = middle_data.output2
+        self.MiddleSPARC = -self.MiddleParameters['SPARC RMS']
+        self.MiddlePeakZAcc = self.MiddleParameters['Zpeak']
+        self.MiddlePourTime = self.MiddleParameters['Zlength']
+        self.UpRollRange = self.UpParameters['Rollrange']
+        self.UpSPARC = - self.UpParameters['SPARC RMS']
+        self.UpLiftDelta = self.UpParameters['Zdown peak time'] - self.UpParameters['Zup peak time']
+        self.UpPeakZAcc = self.UpParameters['Zpeak']
 
-    def FrailtyIndex(self):
+        self.score = {}
 
-        if self.label == 'up':
+        print(self.UpParameters)
+        print(self.MiddleParameters)
+        self.PrintParameters()
 
-            print("\n----- UP Data -----")
-            lift_delta = self.Parameters['Zdown peak time'] - self.Parameters['Zup peak time']
-            print(f"{self.Parameters['Zpeak']} Peak Z")
-            print(f"{lift_delta} Lift Delta")
-            print(f"{self.Parameters['SPARC RMS']} SPARC of Movement")
-            print(f"{self.Parameters['Rollrange']} Roll Range")
-            print(f"{self.Parameters['Zfreq']} Frequency")
 
-        elif self.label == 'middle':
-            print("\n----- Middle Data -----")
-            print(f"{self.Parameters['Zlength']} Pouring Length")
-            print(f"{self.Parameters['Zpeak']} Peak Z")
-            print(f"{self.Parameters['SPARC RMS']} SPARC of Movement")
-            print(f"{self.Parameters['Zfreq']} Frequency")
+
+    def PrintParameters(self):
+
+        print("\n----- UP Data -----")
+        print(f"{self.UpPeakZAcc} Peak Z")
+        print(f"{self.UpLiftDelta} Lift Delta")
+        print(f"{self.UpSPARC} SPARC of Movement")
+        print(f"{self.UpRollRange} Roll Range")
+
+        print("\n----- Middle Data -----")
+        print(f"{self.MiddlePourTime} Pouring Length")
+        print(f"{self.MiddlePeakZAcc} Peak Z")
+        print(f"{self.MiddleSPARC} SPARC of Movement")
+
+    def DataThresholding(self):
+
+        if self.UpSPARC < 1:
+            self.score['UpSPARC'] = 1
+        elif self.UpSPARC > 5:
+            self.score['UpSPARC'] = 0
+        else:
+            self.score['UpSPARC'] = (5 - self.UpSPARC) / 4
+
+        if self.MiddleSPARC < 4:
+            self.score['MiddleSPARC'] = 1
+        elif self.MiddleSPARC > 10:
+            self.score['MiddleSPARC'] = 0
+        else:
+            self.score['MiddleSPARC'] = (10 - self.MiddleSPARC) / 6
+

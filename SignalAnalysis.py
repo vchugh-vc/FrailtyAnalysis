@@ -6,7 +6,7 @@ from DTW import DataTimeWarping
 from FrailtyIndex import Frailty
 import matplotlib.pyplot as plt
 
-FILE = 'IMUData.csv'
+FILE = 'CollectionData/2024-03-05-P1-Dom-3.csv'
 
 FilteredData = DataPreparation(file=FILE)
 AccZ = FilteredData.AccZ_Trimmed
@@ -15,8 +15,7 @@ DTWPhases = DataTimeWarping(AccZ, AccX)
 TimeStamps = DTWPhases.movement_stamps
 up_data = Features(FilteredData, TimeStamps, 'up')
 middle_data = Features(FilteredData, TimeStamps, 'middle')
-Frailty(up_data, 'up')
-Frailty(middle_data, 'middle')
+Frailty(up_data, middle_data)
 
 
 def butter_lowpass(cutoff, fs, order=5):
