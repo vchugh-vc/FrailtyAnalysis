@@ -83,7 +83,7 @@ class DataTimeWarping:
         plt.suptitle('Lifting Graph (Fast)')
         print(data_range)
         plt.plot(DTWAccZ, label='DTW')
-        plt.plot(self.AccZ[0:data_range], label='IMU')
+        plt.plot(self.AccZ[0:data_range + 50], label='IMU')
         plt.legend()
         plt.show()
 
@@ -112,13 +112,13 @@ class DataTimeWarping:
         plt.suptitle('Lifting Graph (Slow)')
         print(data_range)
         plt.plot(DTWAccZ, label='DTW')
-        plt.plot(self.AccZ[0:data_range], label='IMU')
+        plt.plot(self.AccZ[0:data_range + 50], label='IMU')
         plt.legend()
         plt.show()
 
         return [data_range, minimum]
 
-    def Up_Peaks(self, start_range=150):
+    def Up_Peaks(self, start_range=200):
 
         lifting_up_peak = signal.find_peaks(self.AccZ[0:start_range], prominence=0.04, height=0.02)
         lifting_down_peak = signal.find_peaks(-self.AccZ[0:start_range], prominence=0.04, height=0.01)
@@ -219,9 +219,9 @@ class DataTimeWarping:
         plt.legend()
         plt.show()
 
-    def Down_Peaks(self):
+    def Down_Peaks(self, down_range=150):
 
-        up_peak = signal.find_peaks(self.AccZ[-150:], height=0.01, prominence=0.1)
+        up_peak = signal.find_peaks(self.AccZ[-down_range:], height=0.01, prominence=0.1)
         # prom = signal.peak_prominences(self.AccZ[-200:], up_peak[0])
         print(f"Put down peak at {up_peak}")
         # print(f"{up_peak[0][0]} at {up_peak[1]['peak_heights'][0]}")
@@ -234,7 +234,7 @@ class DataTimeWarping:
 
         # print(f"DownPeaks: Main Up Peak at {peak_location} with Prom = {prom}")
 
-        location = len(self.AccZ) - (160 - peak_location)
+        location = len(self.AccZ) - (10 + down_range - peak_location)
         self.down_start = location
         # print(f"Prominences {prom}")
         plt.suptitle('Putting Down Graph')
@@ -272,9 +272,11 @@ class DataTimeWarping:
         phase_stamps = [0, self.DTW_up_end, self.pour_start, self.down_start, len(self.AccZ)]
 
         for point in phase_stamps:
-            plt.axvline(x=point, color='r', linestyle='--', label=f'x = {point}')
+            plt.axvline(x=point, color='r', linestyle='--')
 
-        plt.plot(self.AccZ)
+        plt.plot(self.AccZ, label='Z')
+        plt.plot(self.AccX, label='X')
+        plt.legend()
         plt.show()
 
         # for i in range(len(self.movement_stamps) - 1):
