@@ -1,3 +1,5 @@
+import numpy
+
 class Frailty:
 
     def __init__(self, up_data, middle_data):
@@ -14,11 +16,9 @@ class Frailty:
 
         self.score = {}
 
-        print(self.UpParameters)
-        print(self.MiddleParameters)
         self.PrintParameters()
-
-
+        self.DataThresholding()
+        self.Scoring()
 
     def PrintParameters(self):
 
@@ -48,4 +48,56 @@ class Frailty:
             self.score['MiddleSPARC'] = 0
         else:
             self.score['MiddleSPARC'] = (10 - self.MiddleSPARC) / 6
+
+        if self.UpRollRange < 5:
+            self.score['UpRollRange'] = 1
+        elif self.UpRollRange > 30:
+            self.score['UpRollRange'] = 0
+        else:
+            self.score['UpRollRange'] = (30 - self.UpRollRange) / 25
+
+        if self.MiddlePourTime < 450:
+            self.score['MiddlePourTime'] = 1
+        elif self.MiddlePourTime > 1000:
+            self.score['MiddlePourTime'] = 0
+        else:
+            self.score['MiddlePourTime'] = (1000 - self.MiddlePourTime) / 550
+
+        if self.UpLiftDelta < 0.25:
+            self.score['UpLiftDelta'] = 1
+        elif self.UpLiftDelta > 0.7:
+            self.score['UpLiftDelta'] = 0
+        else:
+            self.score['UpLiftDelta'] = (0.7 - self.UpLiftDelta) / 0.45
+
+        if self.UpPeakZAcc < 0.1:
+            self.score['UpPeakZAcc'] = 0
+        elif self.UpPeakZAcc < 0.25:
+            self.score['UpPeakZAcc'] = (self.UpPeakZAcc - 0.1) / 0.15
+        elif self.UpPeakZAcc < 0.27:
+            self.score['UpPeakZAcc'] = 1
+        else:
+            self.score['UpPeakZAcc'] = (0.42 - self.UpPeakZAcc) / 0.15
+
+        if self.MiddlePeakZAcc < 0.4:
+            self.score['MiddlePeakZAcc'] = 0
+        elif self.MiddlePeakZAcc < 0.55:
+            self.score['MiddlePeakZAcc'] = (self.MiddlePeakZAcc - 0.4) / 0.15
+        elif self.MiddlePeakZAcc < 0.6:
+            self.score['MiddlePeakZAcc'] = 1
+        else:
+            self.score['MiddlePeakZAcc'] = (0.7 - self.MiddlePeakZAcc) / 0.1
+
+        print(f"\n{self.score}")
+
+    def Scoring(self):
+
+        total = 0
+
+        for key, value in self.score.items():
+            total = total + value
+
+        rough_score = 100 * (total / 7)
+        FrailtyScore = numpy.round(rough_score, decimals=2)
+        print(FrailtyScore)
 
