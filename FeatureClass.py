@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy
 import matplotlib.pyplot as plt
-from numpy.fft import fft, fftfreq, rfft
+from numpy.fft import fft, fftfreq
 from scipy import signal
 
 SAMPLE_TIME = 0.0096
@@ -11,31 +11,6 @@ SENSE_START = 0.015
 SENSE_STOP = 0.015
 
 IMUFile = 'IMUData.csv'
-
-
-def starting():
-    filename = "IMUData.csv"
-    plt.rcParams["figure.autolayout"] = True
-    df = pd.read_csv(filename)
-    # Time = df['Time']
-    IMUAccY = df['AccY']
-    IMUAccX = df['AccX']
-    IMUAccZ = df['AccZ']
-    IMUGyroX = df['GyroX']
-    IMUGyroY = df['GyroY']
-    IMUGyroZ = df['GyroZ']
-    IMURoll = df['Roll']
-    IMUPitch = df['Pitch']
-    # Time_diff = (df['Time'].iloc[-1] - df['Time'].iloc[0])
-
-    # SAMPLE_TIME = (Time_diff / len(Time)) / 1000
-    # SAMPLE_FREQ = numpy.round(1000 * len(Time) / Time_diff)
-
-    SAMPLE_TIME = 0.0096
-    SAMPLE_FREQ = 104
-
-    SENSE = 0.02
-    print(f"Sample Time: {SAMPLE_TIME} at Sample Freq: {SAMPLE_FREQ}")
 
 
 class DataPreparation:
@@ -153,8 +128,8 @@ class DataPreparation:
         stop = []
         start.append(0)
         for i in range(4, len(self.SMV_roll)):
-            if (self.SMV_roll[i] > SENSE > self.SMV_roll[i - 4] and self.SMV_roll[i - 2] > SENSE and self.SMV_roll[
-                i - 1] > SENSE and self.SMV_roll[i - 3] > SENSE):
+            if self.SMV_roll[i] > SENSE > self.SMV_roll[i - 4] and self.SMV_roll[i - 2] > SENSE and self.SMV_roll[
+                i - 1] > SENSE and self.SMV_roll[i - 3] > SENSE:
                 print(f"Started movement at {i * SAMPLE_TIME} : {i}")
                 start.append(i)
             elif self.SMV_roll[i] < SENSE < self.SMV_roll[i - 4] and self.SMV_roll[i - 2] < SENSE and self.SMV_roll[
@@ -318,6 +293,8 @@ class Features:
             self.start = timestamps[4]
             self.stop = timestamps[5]
 
+
+
         self.AccX = self.RawAccX[self.start:self.stop]
         self.AccY = self.RawAccY[self.start:self.stop]
         self.AccZ = self.RawAccZ[self.start:self.stop]
@@ -415,9 +392,6 @@ class Features:
         rms_data = numpy.sqrt(numpy.mean(array ** 2))
         std_data = numpy.nanstd(array)
         var_data = numpy.nanvar(array)
-
-        if self.label == 'middle':
-            lifting_data = [0, 0, 0, 0]
 
         dictionary['max'] = max_data
         dictionary['max time'] = max_time.item() * SAMPLE_TIME
