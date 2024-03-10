@@ -39,10 +39,10 @@ class DataTimeWarping:
         # self.DTWDown2()
         self.PhaseUp()
         self.Down_Peaks()
+        self.PhaseDown()
         self.movement_stamps
         self.walking_filter()
         self.movement_phases()
-
 
     def DTWGeneral(self):  # DTW Comparing an entire signal against pre-recorded signals and return the best fit
         minimum = 100
@@ -79,14 +79,6 @@ class DataTimeWarping:
 
         print(f"Up Fast: From {data_range}, the distance is {distance}")
 
-        self.Up_Peaks()
-        plt.suptitle('Lifting Graph (Fast)')
-        print(data_range)
-        plt.plot(DTWAccZ, label='DTW')
-        plt.plot(self.AccZ[0:data_range + 50], label='IMU')
-        plt.legend()
-        plt.show()
-
         return [data_range, minimum]
 
     def DTWUpSlow(self):  # Compares a known lifting signal to different intervals of a movement
@@ -109,28 +101,21 @@ class DataTimeWarping:
 
         print(f"Up Slow: From {data_range}, the distance is {distance}")
 
-        plt.suptitle('Lifting Graph (Slow)')
-        print(data_range)
-        plt.plot(DTWAccZ, label='DTW')
-        plt.plot(self.AccZ[0:data_range + 50], label='IMU')
-        plt.legend()
-        plt.show()
-
         return [data_range, minimum]
 
-    def Up_Peaks(self, start_range=200):
+    def Up_Peaks(self,start_point=0,start_range=250):
 
-        lifting_up_peak = signal.find_peaks(self.AccZ[0:start_range], prominence=0.04, height=0.02)
-        lifting_down_peak = signal.find_peaks(-self.AccZ[0:start_range], prominence=0.04, height=0.01)
+        lifting_up_peak = signal.find_peaks(self.AccZ[start_point:start_range], prominence=0.04, height=0.02)
+        lifting_down_peak = signal.find_peaks(-self.AccZ[start_point:start_range], prominence=0.04, height=0.01)
 
         j = 0.04
         while len(lifting_up_peak[0]) < 1:
-            lifting_up_peak = signal.find_peaks(self.AccZ[0:start_range], prominence=j, height=0.02)
+            lifting_up_peak = signal.find_peaks(self.AccZ[start_point:start_range], prominence=j, height=0.02)
             j = j - 0.01
 
         k = 0.04
         while len(lifting_down_peak[0]) < 1:
-            lifting_down_peak = signal.find_peaks(-self.AccZ[0:start_range], prominence=k)
+            lifting_down_peak = signal.find_peaks(-self.AccZ[start_point:start_range], prominence=k)
             k = k - 0.01
 
         print(f"Scipy Peak of {lifting_up_peak}")
@@ -153,11 +138,13 @@ class DataTimeWarping:
         print(f"UP3: Main Down Peak at {location} with Prom = {prom}")
         self.lifting_down_peak = location
 
-    def PhaseUp(self):
+    def PhaseUp(self): # Combining DTW and Peaks Algorithm
 
         fast = self.DTWUpFast()
         slow = self.DTWUpSlow()
         self.Up_Peaks()
+
+        # DTW Checking
 
         if fast[1] <= slow[1]:
             self.DTW_up_end = fast[0]
@@ -167,13 +154,20 @@ class DataTimeWarping:
             print("Slow")
         print(f"DTW UP End: {self.DTW_up_end}")
 
-        if self.lifting_down_peak < self.lifting_up_peak:
+        if self.lifting_down_peak < self.lifting_up_peak: # checks the peaks are in the right order
             print(f"Rerunning Peaks Algorithm")
             self.Up_Peaks(start_range=300)
 
+        if self.lifting_up_peak < 20 and self.lifting_down_peak < 20: # checks the peaks happen at the right interval
+            print(f"Rerunning Peaks Algorithm")
+            self.Up_Peaks(start_point=20)
 
         if self.lifting_down_peak > self.DTW_up_end:
             self.DTW_up_end = self.lifting_down_peak + 10
+
+        plt.suptitle('Lifting Up Graph')
+        plt.plot(self.AccZ[0:self.DTW_up_end])
+        plt.show()
 
     def DTWDown(self):  # Compares a known down signal to different intervals of a movement
 
@@ -219,32 +213,56 @@ class DataTimeWarping:
         plt.legend()
         plt.show()
 
-    def Down_Peaks(self, down_range=150):
+    def Down_Peaks(self, down_range=100):
 
         up_peak = signal.find_peaks(self.AccZ[-down_range:], height=0.01, prominence=0.1)
         # prom = signal.peak_prominences(self.AccZ[-200:], up_peak[0])
-        print(f"Put down peak at {up_peak}")
+        print(up_peak[0])
         # print(f"{up_peak[0][0]} at {up_peak[1]['peak_heights'][0]}")
+
+        peak_location = None
 
         prom = 0
         for i in range(len(up_peak[1]['prominences'])):
-            if up_peak[1]['prominences'][i] >= prom and up_peak[1]['left_bases'][i] > 5:
+            if up_peak[1]['prominences'][i] >= prom and up_peak[1]['left_bases'][i] > 1:
                 prom = up_peak[1]['prominences'][i]
                 peak_location = up_peak[0][i]
 
+        if peak_location is None:
+            return None
+        else:
+            location = len(self.AccZ) - (10 + down_range - peak_location)
+            return location
+
+
         # print(f"DownPeaks: Main Up Peak at {peak_location} with Prom = {prom}")
 
-        location = len(self.AccZ) - (10 + down_range - peak_location)
-        self.down_start = location
+
+
+
+    def PhaseDown(self):
+
+        down_location = self.Down_Peaks()
+
+        i = 150
+        while down_location is None:
+            down_location = self.Down_Peaks(down_range=i)
+            i = i + 50
+
+        print(f"Put down peak at {down_location}")
+        self.down_start = down_location
+
         # print(f"Prominences {prom}")
         plt.suptitle('Putting Down Graph')
         plt.plot(self.AccZ[self.down_start:], label='IMU')
         plt.legend()
         plt.show()
 
+
+
     def walking_filter(self):
 
-        i = 20
+        i = 10
         while i <= 300:
             Zgrad = numpy.gradient(self.AccZ[self.DTW_up_end + i:self.DTW_up_end + 20 + i])
             Zgradient = numpy.mean(Zgrad) * 10000
@@ -259,7 +277,6 @@ class DataTimeWarping:
             if i == 300:
                 self.pour_start = self.DTW_up_end + 10
 
-
     def movement_phases(self):
 
         # plt.plot(AccX[self.up_end:self.down_start])
@@ -267,7 +284,8 @@ class DataTimeWarping:
         # plt.plot(AccZ[self.up_end:self.down_start])
         # plt.show()
 
-        self.movement_stamps = [0,self.lifting_up_peak, self.lifting_down_peak, self.DTW_up_end, self.pour_start, self.down_start, len(self.AccZ)]
+        self.movement_stamps = [0, self.lifting_up_peak, self.lifting_down_peak, self.DTW_up_end, self.pour_start,
+                                self.down_start, len(self.AccZ)]
 
         phase_stamps = [0, self.DTW_up_end, self.pour_start, self.down_start, len(self.AccZ)]
 
