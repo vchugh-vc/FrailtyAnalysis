@@ -4,6 +4,7 @@ import signal
 import sys
 from paho.mqtt import client as mqtt_client
 
+
 broker = 'test.mosquitto.org'
 port = 1883
 topic = "VarunChugh1"
@@ -23,7 +24,7 @@ def connect_mqtt():
             print("Failed to connect, return code %d\n", rc)
 
     # Set Connecting Client ID
-    client = mqtt_client.Client(client_id, clean_session=False)
+    client = mqtt_client.Client(client_id, clean_session=True)
     # client.username_pw_set(username, password)
     client.on_connect = on_connect
     client.connect(broker, port)
@@ -33,8 +34,11 @@ def connect_mqtt():
 def subscribe(client: mqtt_client):
     def on_message(client, userdata, msg):
         # print(f"Received `{msg.payload.decode()}` from `{msg.topic}` topic")
-        print(msg.payload.decode())
-        file.write(msg.payload.decode() + "\n")
+        message = msg.payload.decode()
+        if len(message) < 100:
+            print(message)
+            file.write(message + "\n")
+
 
     client.subscribe(topic)
     client.on_message = on_message
@@ -56,6 +60,7 @@ def starter():
         i += 1
 
 
+
 def mqtt_transmission():
     client = connect_mqtt()
     try:
@@ -66,3 +71,5 @@ def mqtt_transmission():
         client.loop_stop()
         file.close()
         print('finished')
+
+
