@@ -10,6 +10,7 @@ class Frailty:
         self.MiddlePeakZAcc = self.MiddleParameters['Zpeak']
         self.MiddlePourTime = self.MiddleParameters['Zlength']
         self.UpRollRange = self.UpParameters['Rollrange']
+        self.UpPitchRange = self.UpParameters['Pitchrange']
         self.UpSPARC = - self.UpParameters['SPARC RMS']
         self.UpLiftDelta = self.UpParameters['Zdown peak time'] - self.UpParameters['Zup peak time']
         self.UpPeakZAcc = self.UpParameters['Zpeak']
@@ -27,6 +28,7 @@ class Frailty:
         print(f"{self.UpLiftDelta} Lift Delta")
         print(f"{self.UpSPARC} SPARC of Movement")
         print(f"{self.UpRollRange} Roll Range")
+        print(f"{self.UpPitchRange} Pitch Range")
 
         print("\n----- Middle Data -----")
         print(f"{self.MiddlePourTime} Pouring Length")
@@ -51,10 +53,17 @@ class Frailty:
 
         if self.UpRollRange < 5:
             self.score['UpRollRange'] = 1
-        elif self.UpRollRange > 30:
+        elif self.UpRollRange > 20:
             self.score['UpRollRange'] = 0
         else:
-            self.score['UpRollRange'] = (30 - self.UpRollRange) / 25
+            self.score['UpRollRange'] = (20 - self.UpRollRange) / 15
+
+        if self.UpPitchRange < 8:
+            self.score['UpPitchRange'] = 1
+        elif self.UpPitchRange > 25:
+            self.score['UpPitchRange'] = 0
+        else:
+            self.score['UpPitchRange'] = (25 - self.UpPitchRange) / 17
 
         if self.MiddlePourTime < 450:
             self.score['MiddlePourTime'] = 1
@@ -81,12 +90,14 @@ class Frailty:
 
         if self.MiddlePeakZAcc < 0.4:
             self.score['MiddlePeakZAcc'] = 0
-        elif self.MiddlePeakZAcc < 0.55:
-            self.score['MiddlePeakZAcc'] = (self.MiddlePeakZAcc - 0.4) / 0.15
         elif self.MiddlePeakZAcc < 0.6:
+            self.score['MiddlePeakZAcc'] = (self.MiddlePeakZAcc - 0.4) / 0.2
+        elif self.MiddlePeakZAcc < 0.61:
             self.score['MiddlePeakZAcc'] = 1
+        elif self.MiddlePeakZAcc < 0.7:
+            self.score['MiddlePeakZAcc'] = (0.7 - self.MiddlePeakZAcc) / 0.09
         else:
-            self.score['MiddlePeakZAcc'] = (0.7 - self.MiddlePeakZAcc) / 0.1
+            self.score['MiddlePeakZAcc'] = 0
 
         print(f"\n{self.score}")
 
@@ -97,7 +108,7 @@ class Frailty:
         for key, value in self.score.items():
             total = total + value
 
-        rough_score = 100 * (total / 7)
+        rough_score = 100 * (total / 8)
         FrailtyScore = numpy.round(rough_score, decimals=2)
         print(FrailtyScore)
 
