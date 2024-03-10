@@ -324,6 +324,7 @@ class Features:
         self.y_features = {}
         self.z_features = {}
         self.roll_features = {}
+        self.pitch_features = {}
         self.frequency_calc()
         self.freq_calc_2()
 
@@ -331,6 +332,7 @@ class Features:
         self.data_extraction(self.AccY, self.y_features)
         self.data_extraction(self.AccX, self.x_features)
         self.data_extraction(self.Roll, self.roll_features)
+        self.data_extraction(self.Pitch, self.pitch_features)
 
         self.output2 = {}
 
@@ -416,7 +418,7 @@ class Features:
 
     def dictionary_combine(self):
 
-        axis = [self.x_features, self.y_features, self.z_features, self.roll_features]
+        axis = [self.x_features, self.y_features, self.z_features, self.roll_features, self.pitch_features]
 
         for i in range(len(axis)):
             for keys, values in axis[i].items():
@@ -428,6 +430,8 @@ class Features:
                     label = 'Z'
                 elif i == 3:
                     label = 'Roll'
+                elif i ==4:
+                    label = "Pitch"
                 # print(f"{label}{keys} : {values}")
                 self.output2[f"{label}{keys}"] = values
 
