@@ -103,7 +103,7 @@ class DataTimeWarping:
 
         return [data_range, minimum]
 
-    def Up_Peaks(self,start_point=0,start_range=250):
+    def Up_Peaks(self,start_point=0,start_range=150):
 
         lifting_up_peak = signal.find_peaks(self.AccZ[start_point:start_range], prominence=0.04, height=0.02)
         lifting_down_peak = signal.find_peaks(-self.AccZ[start_point:start_range], prominence=0.04, height=0.01)
@@ -162,8 +162,10 @@ class DataTimeWarping:
             print(f"Rerunning Peaks Algorithm")
             self.Up_Peaks(start_point=20)
 
-        if self.lifting_down_peak > self.DTW_up_end:
-            self.DTW_up_end = self.lifting_down_peak + 10
+        if self.lifting_up_peak is None:
+            self.Up_Peaks(start_range=300)
+
+        self.DTW_up_end = self.lifting_down_peak + 10
 
         plt.suptitle('Lifting Up Graph')
         plt.plot(self.AccZ[0:self.DTW_up_end])
