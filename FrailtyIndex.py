@@ -1,4 +1,5 @@
 import numpy
+import pandas as pd
 
 
 class Frailty:
@@ -15,7 +16,6 @@ class Frailty:
         self.UpSPARC = - self.UpParameters['SPARC RMS']
         self.UpLiftDelta = self.UpParameters['Zdown peak time'] - self.UpParameters['Zup peak time']
         self.UpPeakZAcc = self.UpParameters['Zpeak']
-
 
         self.ScoreData = {}
 
@@ -120,9 +120,7 @@ class Frailty:
         else:
             self.ScoreData['MiddleAccZ']['score'] = 0
 
-
         print(self.ScoreData)
-
 
     def Scoring(self):
 
@@ -134,3 +132,7 @@ class Frailty:
         rough_score = 100 * (total / 8)
         FrailtyScore = numpy.round(rough_score, decimals=2)
         print(FrailtyScore)
+
+        df = pd.DataFrame(self.ScoreData)
+        new_df = df.transpose()
+        new_df.to_csv('FrailtyParameters.csv', index_label='Parameter')
