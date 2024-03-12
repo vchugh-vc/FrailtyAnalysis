@@ -1,5 +1,6 @@
 import numpy
 
+
 class Frailty:
 
     def __init__(self, up_data, middle_data):
@@ -15,11 +16,31 @@ class Frailty:
         self.UpLiftDelta = self.UpParameters['Zdown peak time'] - self.UpParameters['Zup peak time']
         self.UpPeakZAcc = self.UpParameters['Zpeak']
 
-        self.score = {}
+
+        self.ScoreData = {}
 
         self.PrintParameters()
+        self.DataFrameParameters()
         self.DataThresholding()
+
         self.Scoring()
+
+    def DataFrameParameters(self):
+
+        parameters = ['UpAccZ', 'UpDelta', 'UpSPARC', 'UpRoll', 'UpPitch', 'MiddleDelta', 'MiddleAccZ', 'MiddleSPARC']
+
+        for i in parameters:
+            self.ScoreData[i] = {'value': 0, 'score': 0}
+
+        self.ScoreData['UpAccZ']['value'] = self.UpPeakZAcc
+        self.ScoreData['UpDelta']['value'] = self.UpLiftDelta
+        self.ScoreData['UpSPARC']['value'] = self.UpSPARC
+        self.ScoreData['UpRoll']['value'] = self.UpRollRange
+        self.ScoreData['UpPitch']['value'] = self.UpPitchRange
+
+        self.ScoreData['MiddleDelta']['value'] = self.MiddlePourTime
+        self.ScoreData['MiddleAccZ']['value'] = self.MiddlePeakZAcc
+        self.ScoreData['MiddleSPARC']['value'] = self.MiddleSPARC
 
     def PrintParameters(self):
 
@@ -38,77 +59,78 @@ class Frailty:
     def DataThresholding(self):
 
         if self.UpSPARC < 1:
-            self.score['UpSPARC'] = 1
+            self.ScoreData['UpSPARC']['score'] = 1
         elif self.UpSPARC > 5:
-            self.score['UpSPARC'] = 0
+            self.ScoreData['UpSPARC']['score'] = 0
         else:
-            self.score['UpSPARC'] = (5 - self.UpSPARC) / 4
+            self.ScoreData['UpSPARC']['score'] = (5 - self.UpSPARC) / 4
 
         if self.MiddleSPARC < 4:
-            self.score['MiddleSPARC'] = 1
+            self.ScoreData['MiddleSPARC']['score'] = 1
         elif self.MiddleSPARC > 10:
-            self.score['MiddleSPARC'] = 0
+            self.ScoreData['MiddleSPARC']['score'] = 0
         else:
-            self.score['MiddleSPARC'] = (10 - self.MiddleSPARC) / 6
+            self.ScoreData['MiddleSPARC']['score'] = (10 - self.MiddleSPARC) / 6
 
         if self.UpRollRange < 5:
-            self.score['UpRollRange'] = 1
+            self.ScoreData['UpRoll']['score'] = 1
         elif self.UpRollRange > 20:
-            self.score['UpRollRange'] = 0
+            self.ScoreData['UpRoll']['score'] = 0
         else:
-            self.score['UpRollRange'] = (20 - self.UpRollRange) / 15
+            self.ScoreData['UpRoll']['score'] = (20 - self.UpRollRange) / 15
 
         if self.UpPitchRange < 8:
-            self.score['UpPitchRange'] = 1
+            self.ScoreData['UpPitch']['score'] = 1
         elif self.UpPitchRange > 25:
-            self.score['UpPitchRange'] = 0
+            self.ScoreData['UpPitch']['score'] = 0
         else:
-            self.score['UpPitchRange'] = (25 - self.UpPitchRange) / 17
+            self.ScoreData['UpPitch']['score'] = (25 - self.UpPitchRange) / 17
 
         if self.MiddlePourTime < 450:
-            self.score['MiddlePourTime'] = 1
+            self.ScoreData['MiddleDelta']['score'] = 1
         elif self.MiddlePourTime > 1000:
-            self.score['MiddlePourTime'] = 0
+            self.ScoreData['MiddleDelta']['score'] = 0
         else:
-            self.score['MiddlePourTime'] = (1000 - self.MiddlePourTime) / 550
+            self.ScoreData['MiddleDelta']['score'] = (1000 - self.MiddlePourTime) / 550
 
         if self.UpLiftDelta < 0.25:
-            self.score['UpLiftDelta'] = 1
+            self.ScoreData['UpDelta']['score'] = 1
         elif self.UpLiftDelta > 0.7:
-            self.score['UpLiftDelta'] = 0
+            self.ScoreData['UpDelta']['score'] = 0
         else:
-            self.score['UpLiftDelta'] = (0.7 - self.UpLiftDelta) / 0.45
+            self.ScoreData['UpDelta']['score'] = (0.7 - self.UpLiftDelta) / 0.45
 
         if self.UpPeakZAcc < 0.1:
-            self.score['UpPeakZAcc'] = 0
+            self.ScoreData['UpAccZ']['score'] = 0
         elif self.UpPeakZAcc < 0.25:
-            self.score['UpPeakZAcc'] = (self.UpPeakZAcc - 0.1) / 0.15
+            self.ScoreData['UpAccZ']['score'] = (self.UpPeakZAcc - 0.1) / 0.15
         elif self.UpPeakZAcc < 0.27:
-            self.score['UpPeakZAcc'] = 1
+            self.ScoreData['UpAccZ']['score'] = 1
         else:
-            self.score['UpPeakZAcc'] = (0.42 - self.UpPeakZAcc) / 0.15
+            self.ScoreData['UpAccZ']['score'] = (0.42 - self.UpPeakZAcc) / 0.15
 
         if self.MiddlePeakZAcc < 0.4:
-            self.score['MiddlePeakZAcc'] = 0
+            self.ScoreData['MiddleAccZ']['score'] = 0
         elif self.MiddlePeakZAcc < 0.6:
-            self.score['MiddlePeakZAcc'] = (self.MiddlePeakZAcc - 0.4) / 0.2
+            self.ScoreData['MiddleAccZ']['score'] = (self.MiddlePeakZAcc - 0.4) / 0.2
         elif self.MiddlePeakZAcc < 0.61:
-            self.score['MiddlePeakZAcc'] = 1
+            self.ScoreData['MiddleAccZ']['score'] = 1
         elif self.MiddlePeakZAcc < 0.7:
-            self.score['MiddlePeakZAcc'] = (0.7 - self.MiddlePeakZAcc) / 0.09
+            self.ScoreData['MiddleAccZ']['score'] = (0.7 - self.MiddlePeakZAcc) / 0.09
         else:
-            self.score['MiddlePeakZAcc'] = 0
+            self.ScoreData['MiddleAccZ']['score'] = 0
 
-        print(f"\n{self.score}")
+
+        print(self.ScoreData)
+
 
     def Scoring(self):
 
         total = 0
 
-        for key, value in self.score.items():
-            total = total + value
+        for outer_key, inner_dict in self.ScoreData.items():
+            total = total + inner_dict['score']
 
         rough_score = 100 * (total / 8)
         FrailtyScore = numpy.round(rough_score, decimals=2)
         print(FrailtyScore)
-
