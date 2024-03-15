@@ -11,6 +11,10 @@ print(df)
 
 theta = df.columns.tolist()
 
+rows = df.head()
+dates = list(rows.index)
+
+print(dates)
 
 def comparison():
     fig = go.Figure()
@@ -60,8 +64,8 @@ def selector():
         # creating a dropdown within a html component
         html.Div(id='dropdown-div', children=
         [dcc.Dropdown(id='continent-dropdown',
-                      options=[2024,2023],
-                      value=2023
+                      options=dates,
+                      value=dates[0]
                       )], style={'width': '50%', 'display': 'inline-block'}),
         # inline-block : to show slider and dropdown in the same line
 
@@ -87,4 +91,4 @@ def selector():
 
 # Run the app
 
-comparison()
+selector()
