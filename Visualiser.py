@@ -12,13 +12,6 @@ theta = df.columns.tolist()
 rows = df.head()
 date = list(rows.index)
 dates = np.array(date)
-print(dates)
-
-print(df.index[0])
-print(date)
-
-print(df.loc[2022:2023])
-
 
 def comparison():
     fig = go.Figure()
@@ -139,8 +132,8 @@ def linear():
     # App layout
     app.layout = html.Div([
         html.Div(children='Left vs Right FrailtyScore Data'),
-        dash_table.DataTable(data=df.to_dict('records'), page_size=10),
-        dcc.Dropdown(theta, 'UpAccZ', id='frailtyparameter'),
+        dash_table.DataTable(data=df.reset_index().to_dict(orient='records'), page_size=10),
+        dcc.Dropdown(theta, 'FrailtyScore', id='frailtyparameter'),
         dcc.Graph(figure=fig, id="graph")
     ])
 
