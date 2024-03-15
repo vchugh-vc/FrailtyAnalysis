@@ -1,5 +1,14 @@
 import numpy
 import pandas as pd
+import csv
+from datetime import datetime
+
+current_time = datetime.now()
+formatted_date_time = current_time.strftime("%Y-%m-%d-%H:%M:%S")
+
+
+
+file = 'FrailtyParameters.csv'
 
 
 class Frailty:
@@ -125,14 +134,21 @@ class Frailty:
     def Scoring(self):
 
         total = 0
+        scores = [formatted_date_time]
 
         for outer_key, inner_dict in self.ScoreData.items():
             total = total + inner_dict['score']
+            scores.append(round(inner_dict['score'],3))
 
         rough_score = 100 * (total / 8)
         FrailtyScore = numpy.round(rough_score, decimals=2)
         print(FrailtyScore)
 
-        df = pd.DataFrame(self.ScoreData)
-        new_df = df.transpose()
-        new_df.to_csv('FrailtyParameters.csv', index_label='Parameter')
+        storage = input("Do you want to save the data long term? (Yes/No) ")
+
+        if storage == 'Yes':
+            with open(file, 'a', newline='') as csvfile:
+                writer = csv.writer(csvfile)
+                writer.writerow(scores)
+
+
