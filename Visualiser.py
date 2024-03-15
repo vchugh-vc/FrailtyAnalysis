@@ -1,14 +1,15 @@
 from dash import Dash, html, dash_table, dcc, callback, Output, Input
 import pandas as pd
 import plotly.graph_objects as go
+import numpy as np
 import plotly.express as px
 
 
-df = pd.read_csv('FrailtyParameters.csv')
+df = pd.read_csv('FrailtyParameters.csv', index_col=0)
 
-theta = df.columns.tolist()[1:]
-r1 = df.loc[0, :].values.flatten().tolist()[1:]
-r2 = df.loc[1, :].values.flatten().tolist()[1:]
+print(df)
+
+theta = df.columns.tolist()
 
 
 def comparison():
@@ -40,7 +41,7 @@ def comparison():
 
     # App layout
     app.layout = html.Div([
-        html.Div(children='My First App with Data and a Graph'),
+        html.Div(children='Left vs Right FrailtyScore Data'),
         dash_table.DataTable(data=df.to_dict('records'), page_size=10),
         dcc.Graph(figure=fig)
     ])
@@ -52,22 +53,32 @@ def selector():
 
     app = Dash(__name__)
 
-    # App layout
-    app.layout = html.Div([
-        html.Div(children='My First App with Data, Graph, and Controls'),
-        html.Hr(),
-        dcc.RadioItems(options=['pop', 'lifeExp', 'gdpPercap'], value='lifeExp', id='controls-and-radio-item'),
-        dash_table.DataTable(data=df.to_dict('records'), page_size=6),
-        dcc.Graph(figure={}, id='controls-and-graph')
+    app.layout = html.Div(id='parent', children=[
+
+        # creating a slider within a html componen
+
+        # creating a dropdown within a html component
+        html.Div(id='dropdown-div', children=
+        [dcc.Dropdown(id='continent-dropdown',
+                      options=[2024,2023],
+                      value=2023
+                      )], style={'width': '50%', 'display': 'inline-block'}),
+        # inline-block : to show slider and dropdown in the same line
+
+        # setting the graph component
+        dcc.Graph(id='scatter-plot')
     ])
 
     # Add controls to build the interaction
-    @callback(
-        Output(component_id='controls-and-graph', component_property='figure'),
-        Input(component_id='controls-and-radio-item', component_property='value')
-    )
-    def update_graph(col_chosen):
-        fig = px.histogram(df, x='continent', y=col_chosen, histfunc='avg')
+    @callback(Output(component_id='scatter-plot', component_property='figure'),
+                  [Input(component_id='continent-dropdown', component_property='value')])
+
+    def graph_update(continent_value):
+        # filtering based on the slide and dropdown selection
+
+        # the figure/plot created using the data filtered above
+        fig = px.line_polar(df.transpose(), r=continent_value, theta=theta, line_close=True)
+
         return fig
 
     # Run the app
@@ -76,4 +87,4 @@ def selector():
 
 # Run the app
 
-comparison()
+selector()
