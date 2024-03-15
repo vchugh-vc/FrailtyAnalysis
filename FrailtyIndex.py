@@ -4,7 +4,7 @@ import csv
 from datetime import datetime
 
 current_time = datetime.now()
-formatted_date_time = current_time.strftime("%Y-%m-%d-%H:%M:%S")
+formatted_date_time = current_time.strftime("%Y-%m-%d %H:%M:%S")
 
 
 
@@ -36,7 +36,7 @@ class Frailty:
 
     def DataFrameParameters(self):
 
-        parameters = ['UpAccZ', 'UpDelta', 'UpSPARC', 'UpRoll', 'UpPitch', 'MiddleDelta', 'MiddleAccZ', 'MiddleSPARC']
+        parameters = ['FrailtyScore','UpAccZ', 'UpDelta', 'UpSPARC', 'UpRoll', 'UpPitch', 'MiddleDelta', 'MiddleAccZ', 'MiddleSPARC']
 
         for i in parameters:
             self.ScoreData[i] = {'value': 0, 'score': 0}
@@ -129,7 +129,6 @@ class Frailty:
         else:
             self.ScoreData['MiddleAccZ']['score'] = 0
 
-        print(self.ScoreData)
 
     def Scoring(self):
 
@@ -142,6 +141,12 @@ class Frailty:
 
         rough_score = 100 * (total / 8)
         FrailtyScore = numpy.round(rough_score, decimals=2)
+        self.ScoreData['FrailtyScore']['score'] = FrailtyScore
+
+        scores[1] = FrailtyScore
+
+        print(self.ScoreData)
+        print(scores)
         print(FrailtyScore)
 
         storage = input("Do you want to save the data long term? (Yes/No) ")
