@@ -7,14 +7,18 @@ import plotly.express as px
 
 df = pd.read_csv('FrailtyParameters.csv', index_col=0)
 
-print(df)
-
 theta = df.columns.tolist()
 
 rows = df.head()
-dates = list(rows.index)
-
+date = list(rows.index)
+dates = np.array(date)
 print(dates)
+
+print(df.index[0])
+print(date)
+
+print(df.loc[2022:2023])
+
 
 def comparison():
     fig = go.Figure()
@@ -76,12 +80,11 @@ def selector():
     # Add controls to build the interaction
     @callback(Output(component_id='scatter-plot', component_property='figure'),
                   [Input(component_id='continent-dropdown', component_property='value')])
-
     def graph_update(continent_value):
         # filtering based on the slide and dropdown selection
 
         # the figure/plot created using the data filtered above
-        fig = px.line_polar(df.transpose(), r=continent_value, theta=theta, line_close=True)
+        fig = px.line_polar(df.transpose(), r=continent_value, theta=theta, line_close=True, range_r=[0,1])
 
         return fig
 
@@ -91,4 +94,72 @@ def selector():
 
 # Run the app
 
-selector()
+def linear():
+
+    fig = go.Figure()
+
+    # Set title
+    fig.update_layout(
+        title_text="Time series with range slider and selectors"
+    )
+
+    # Add range slider
+    fig.update_layout(
+        xaxis=dict(
+            rangeselector=dict(
+                buttons=list([
+                    dict(count=1,
+                         label="1m",
+                         step="month",
+                         stepmode="backward"),
+                    dict(count=6,
+                         label="6m",
+                         step="month",
+                         stepmode="backward"),
+                    dict(count=1,
+                         label="YTD",
+                         step="year",
+                         stepmode="todate"),
+                    dict(count=1,
+                         label="1y",
+                         step="year",
+                         stepmode="backward"),
+                    dict(step="all")
+                ])
+            ),
+            rangeslider=dict(
+                visible=True
+            ),
+            type="date"
+        )
+    )
+
+    app = Dash(__name__)
+
+    # App layout
+    app.layout = html.Div([
+        html.Div(children='Left vs Right FrailtyScore Data'),
+        dash_table.DataTable(data=df.to_dict('records'), page_size=10),
+        dcc.Dropdown(theta, 'UpAccZ', id='frailtyparameter'),
+        dcc.Graph(figure=fig, id="graph")
+    ])
+
+    @callback(
+        Output('graph', 'figure'),
+        Input('frailtyparameter', 'value'))
+
+    def update_graph(frailtyparameter):
+
+        fig.data = []
+        fig.add_trace(
+            go.Scatter(x=list(df.index), y=df[frailtyparameter]))
+
+        fig.update_layout()
+
+        return fig
+
+    if __name__ == '__main__':
+        app.run(debug=True)
+
+
+linear()
