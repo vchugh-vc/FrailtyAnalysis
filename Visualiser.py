@@ -16,13 +16,13 @@ def comparison():
     fig = go.Figure()
 
     fig.add_trace(go.Scatterpolar(
-          r=r1,
+          r=df.iloc[0],
           theta=theta,
           fill='toself',
           name='Left'
     ))
     fig.add_trace(go.Scatterpolar(
-          r=r2,
+          r=df.iloc[1],
           theta=theta,
           fill='toself',
           name='Right'
@@ -87,4 +87,4 @@ def selector():
 
 # Run the app
 
-selector()
+comparison()
