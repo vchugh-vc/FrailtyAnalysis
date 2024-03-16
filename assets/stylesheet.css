@@ -1,0 +1,18 @@
+.banner {
+    height: 75px;
+    margin: 0px -10px 10px;
+    border-radius: 2px;
+}
+.banner H2 {
+    color: black;
+    padding-top: 10px;
+    margin-left: 2%;
+    display: inline-block;
+    font-family: "Palatino", serif;
+}
+.banner Img{
+    position: relative;
+    float: right;
+    right: 10px;
+    height: 75px;
+}
