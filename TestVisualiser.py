@@ -13,29 +13,30 @@ rows = df.head()
 date = list(rows.index)
 dates = np.array(date)
 
+
 def comparison():
     fig = go.Figure()
 
     fig.add_trace(go.Scatterpolar(
-          r=df.iloc[0],
-          theta=theta,
-          fill='toself',
-          name='Left'
+        r=df.iloc[0][1:],
+        theta=theta[1:],
+        fill='toself',
+        name='Left'
     ))
     fig.add_trace(go.Scatterpolar(
-          r=df.iloc[1],
-          theta=theta,
-          fill='toself',
-          name='Right'
+        r=df.iloc[1][1:],
+        theta=theta[1:],
+        fill='toself',
+        name='Right'
     ))
 
     fig.update_layout(
-      polar=dict(
-        radialaxis=dict(
-          visible=True,
-          range=[0, 1]
-        )),
-      showlegend=True
+        polar=dict(
+            radialaxis=dict(
+                visible=True,
+                range=[0, 1]
+            )),
+        showlegend=True
     )
 
     app = Dash(__name__)
@@ -50,8 +51,8 @@ def comparison():
     if __name__ == '__main__':
         app.run(debug=True)
 
-def selector():
 
+def selector():
     app = Dash(__name__)
 
     app.layout = html.Div(id='parent', children=[
@@ -72,12 +73,12 @@ def selector():
 
     # Add controls to build the interaction
     @callback(Output(component_id='scatter-plot', component_property='figure'),
-                  [Input(component_id='continent-dropdown', component_property='value')])
+              [Input(component_id='continent-dropdown', component_property='value')])
     def graph_update(continent_value):
         # filtering based on the slide and dropdown selection
 
         # the figure/plot created using the data filtered above
-        fig = px.line_polar(df.transpose(), r=continent_value, theta=theta, line_close=True, range_r=[0,1])
+        fig = px.line_polar(df.transpose(), r=continent_value, theta=theta, line_close=True, range_r=[0, 1])
 
         return fig
 
@@ -85,10 +86,10 @@ def selector():
     if __name__ == '__main__':
         app.run(debug=True)
 
+
 # Run the app
 
 def linear():
-
     fig = go.Figure()
 
     # Set title
@@ -121,33 +122,44 @@ def linear():
                 ])
             ),
             rangeslider=dict(
-                visible=True
+                visible=True,
             ),
-            type="date"
+            type="date",
+            ticks='inside',
+            showticklabels=True
         )
     )
 
-    app = Dash(__name__)
+    app = Dash(__name__, assets_folder='assets')
 
     # App layout
     app.layout = html.Div([
-        html.Div(children='Left vs Right FrailtyScore Data'),
-        dash_table.DataTable(data=df.reset_index().to_dict(orient='records'), page_size=10),
-        dcc.Dropdown(theta, 'FrailtyScore', id='frailtyparameter'),
-        dcc.Graph(figure=fig, id="graph")
+
+        html.Div([
+            html.H2('Left vs Right FrailtyScore Data', className='title'),
+            html.Img(src="/assets/logo.png"),
+        ], className='banner'),
+        html.Div([
+            dash_table.DataTable(data=df.reset_index().to_dict(orient='records'), page_size=10),
+            dcc.Dropdown(theta, 'FrailtyScore', id='frailtyparameter'),
+            dcc.Graph(figure=fig, id="graph")
+        ]),
     ])
 
     @callback(
         Output('graph', 'figure'),
         Input('frailtyparameter', 'value'))
-
     def update_graph(frailtyparameter):
 
         fig.data = []
         fig.add_trace(
-            go.Scatter(x=list(df.index), y=df[frailtyparameter]))
+            go.Scatter(x=list(df.index), y=df[frailtyparameter], mode='markers'))
+        if frailtyparameter == 'FrailtyScore':
+            yrange = [0, 100]
+        else:
+            yrange = [0, 1]
 
-        fig.update_layout()
+        fig.update_layout(yaxis_range=yrange)
 
         return fig
 
