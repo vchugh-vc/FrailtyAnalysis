@@ -1,42 +1,43 @@
 from dash import Dash, html, dash_table, dcc, callback, Output, Input
 import pandas as pd
-
+import plotly.graph_objects as go
 import plotly.express as px
-
-
 
 df = pd.read_csv('FrailtyParameters.csv')
 headers = list(df.columns.values)
 parameters = headers[1:]
+FrailtyParameters = headers[2:]
+
 
 df['Date'] = pd.to_datetime(df['Date'])
 
+df2 = pd.read_csv('FrailtyParameters.csv')
 
 app = Dash(__name__)
-
 
 app.layout = html.Div([
 
     html.Div([
-        html.H2('Left vs Right FrailtyScore Data', className='title'),
+        html.H2('Frailty Data Trends'),
         html.Img(src="/assets/logo.png"),
     ], className='banner'),
 
     html.Div([
-        dcc.Graph(id="graph"),
-        html.P("Variable:"),
-        dcc.Dropdown(id="parameter", options=parameters,value="FrailtyScore",clearable=False)
+        dcc.Dropdown(id="parameter", options=parameters, value="FrailtyScore", clearable=False),
+        dcc.Graph(id="time_graph"),
+        html.H2('FrailtyScore Day Comparison'),
+        dcc.Dropdown(id='snapshot_1', options=df2['Date'], value=df2.iloc[0]['Date']),
+        dcc.Dropdown(id='snapshot_2', options=df2['Date'], value=df2.iloc[1]['Date']),
+        dcc.Graph(id='radar-graph')
     ]),
 ])
 
 
 @app.callback(
-    Output("graph", "figure"),
+    Output("time_graph", "figure"),
     Input("parameter", "value"))
-
 def display_time_series(parameter):
-
-    fig = px.line(df, x='Date', y=parameter, markers=True)
+    fig = px.line(df, x='Date', y=parameter, markers=True, template='plotly')
 
     if parameter == 'FrailtyScore':
         yrange = [0, 100]
@@ -62,4 +63,36 @@ def display_time_series(parameter):
     return fig
 
 
-app.run_server(debug=True)
+@app.callback(
+    Output('radar-graph', "figure"),
+    Input('snapshot_1', "value"),
+    Input('snapshot_2', 'value')
+)
+def display_radar(snapshot_1, snapshot_2):
+
+    dff = df[df['Date'] == snapshot_1]
+    dff_values = dff.values.tolist()
+
+    dff_2 = df[df['Date'] == snapshot_2]
+    dff_values_2 = dff_2.values.tolist()
+
+    fig2 = px.line_polar(dff, r=dff_values[0][2:], theta=FrailtyParameters, line_close=True, range_r=[0, 1])
+
+    fig3 = px.line_polar(dff_2, r=dff_values_2[0][2:], theta=FrailtyParameters, line_close=True, range_r=[0, 1])
+
+    fig3.data[-1].name = f'{snapshot_2}'
+    fig3.data[-1].showlegend = True
+
+    fig2.data[-1].name = f'{snapshot_1}'
+    fig2.data[-1].showlegend = True
+    fig2.data[-1].line.color = 'red'
+
+    fig2.add_trace(fig3.data[0])
+
+    fig2.update_layout(showlegend=True)
+    fig2.update()
+
+    return fig2
+
+
+app.run_server(debug=True, use_reloader=True)
