@@ -36,7 +36,7 @@ class Frailty:
 
     def DataFrameParameters(self):
 
-        parameters = ['FrailtyScore','UpAccZ', 'UpDelta', 'UpSPARC', 'UpRoll', 'UpPitch', 'MiddleDelta', 'MiddleAccZ', 'MiddleSPARC']
+        parameters = ['FrailtyScore','Stability','Control','Strength','UpAccZ', 'UpDelta', 'UpSPARC', 'UpRoll', 'UpPitch', 'MiddleDelta', 'MiddleAccZ', 'MiddleSPARC']
 
         for i in parameters:
             self.ScoreData[i] = {'value': 0, 'score': 0}
@@ -143,7 +143,14 @@ class Frailty:
         FrailtyScore = numpy.round(rough_score, decimals=2)
         self.ScoreData['FrailtyScore']['score'] = FrailtyScore
 
+        self.ScoreData['Strength']['score'] = (self.ScoreData['MiddleAccZ']['score'] + self.ScoreData['UpAccZ']['score'] + self.ScoreData['UpRoll']['score']) / 3
+        self.ScoreData['Stability']['score'] = (self.ScoreData['UpSPARC']['score'] + self.ScoreData['MiddleSPARC']['score'] + self.ScoreData['UpPitch']['score']) / 3
+        self.ScoreData['Control']['score'] = (self.ScoreData['UpDelta']['score'] + self.ScoreData['MiddleDelta']['score']) / 2
+
         scores[1] = FrailtyScore
+        scores[2] = numpy.round(self.ScoreData['Strength']['score'], decimals=2)
+        scores[3] = numpy.round(self.ScoreData['Stability']['score'], decimals=2)
+        scores[4] = numpy.round(self.ScoreData['Control']['score'], decimals=2)
 
         print(self.ScoreData)
         print(scores)
