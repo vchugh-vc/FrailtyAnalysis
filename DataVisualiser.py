@@ -6,8 +6,8 @@ import plotly.express as px
 df = pd.read_csv('FrailtyParameters.csv')
 headers = list(df.columns.values)
 parameters = headers[1:]
-FrailtyParameters = headers[2:]
-
+IMUParameters = headers[5:]
+BiologyParameters = headers[2:5]
 
 df['Date'] = pd.to_datetime(df['Date'])
 
@@ -76,9 +76,9 @@ def display_radar(snapshot_1, snapshot_2):
     dff_2 = df[df['Date'] == snapshot_2]
     dff_values_2 = dff_2.values.tolist()
 
-    fig2 = px.line_polar(dff, r=dff_values[0][2:], theta=FrailtyParameters, line_close=True, range_r=[0, 1])
+    fig2 = px.line_polar(dff, r=dff_values[0][5:], theta=IMUParameters, line_close=True, range_r=[0, 1])
 
-    fig3 = px.line_polar(dff_2, r=dff_values_2[0][2:], theta=FrailtyParameters, line_close=True, range_r=[0, 1])
+    fig3 = px.line_polar(dff_2, r=dff_values_2[0][5:], theta=IMUParameters, line_close=True, range_r=[0, 1])
 
     fig3.data[-1].name = f'{snapshot_2}'
     fig3.data[-1].showlegend = True
