@@ -1,5 +1,6 @@
 from dash import Dash, html, dash_table, dcc, callback, Output, Input
 import pandas as pd
+from plotly.subplots import make_subplots
 import plotly.graph_objects as go
 import plotly.express as px
 
@@ -28,8 +29,10 @@ app.layout = html.Div([
         html.H2('FrailtyScore Day Comparison'),
         dcc.Dropdown(id='snapshot_1', options=df2['Date'], value=df2.iloc[0]['Date']),
         dcc.Dropdown(id='snapshot_2', options=df2['Date'], value=df2.iloc[1]['Date']),
-        dcc.Graph(id='radar-graph')
-    ]),
+        dcc.Graph(id='radar-graph'),
+        dcc.Graph(id='biology-graph')
+    ], className='banner')
+
 ])
 
 
@@ -93,6 +96,20 @@ def display_radar(snapshot_1, snapshot_2):
     fig2.update()
 
     return fig2
+
+
+@app.callback(
+    Output('biology-graph', "figure"),
+    Input('snapshot_1', "value")
+)
+def display_biology(snapshot_1):
+
+    dff = df[df['Date'] == snapshot_1]
+    dff_values = dff.values.tolist()
+
+    fig4 = px.line_polar(dff, r=dff_values[0][2:5], theta=BiologyParameters, line_close=True, range_r=[0, 1])
+
+    return fig4
 
 
 app.run_server(debug=True, use_reloader=True)
