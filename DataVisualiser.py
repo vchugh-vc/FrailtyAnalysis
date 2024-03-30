@@ -4,7 +4,7 @@ from plotly.subplots import make_subplots
 import plotly.graph_objects as go
 import plotly.express as px
 
-df = pd.read_csv('FrailtyParameters.csv')
+df = pd.read_csv('LongData.csv')
 headers = list(df.columns.values)
 parameters = headers[1:]
 IMUParameters = headers[5:]
@@ -12,7 +12,7 @@ BiologyParameters = headers[2:5]
 
 df['Date'] = pd.to_datetime(df['Date'])
 
-df2 = pd.read_csv('FrailtyParameters.csv')
+df2 = pd.read_csv('LongData.csv')
 
 app = Dash(__name__)
 
@@ -40,7 +40,7 @@ app.layout = html.Div([
     Output("time_graph", "figure"),
     Input("parameter", "value"))
 def display_time_series(parameter):
-    fig = px.line(df, x='Date', y=parameter, markers=True, template='plotly')
+    fig = px.scatter(df, x='Date', y=parameter, template='plotly', trendline="lowess")
 
     if parameter == 'FrailtyScore':
         yrange = [0, 100]
