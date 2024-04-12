@@ -100,14 +100,31 @@ def display_radar(snapshot_1, snapshot_2):
 
 @app.callback(
     Output('biology-graph', "figure"),
-    Input('snapshot_1', "value")
+    Input('snapshot_1', "value"),
+    Input('snapshot_2', 'value')
 )
-def display_biology(snapshot_1):
+def display_biology(snapshot_1, snapshot_2):
 
     dff = df[df['Date'] == snapshot_1]
     dff_values = dff.values.tolist()
 
+    dff_2 = df[df['Date'] == snapshot_2]
+    dff_values_2 = dff_2.values.tolist()
+
     fig4 = px.line_polar(dff, r=dff_values[0][2:5], theta=BiologyParameters, line_close=True, range_r=[0, 1])
+    fig5 = px.line_polar(dff_2, r=dff_values_2[0][2:5], theta=BiologyParameters, line_close=True, range_r=[0, 1])
+
+    fig5.data[-1].name = f'{snapshot_2}'
+    fig5.data[-1].showlegend = True
+
+    fig4.data[-1].name = f'{snapshot_1}'
+    fig4.data[-1].showlegend = True
+    fig4.data[-1].line.color = 'red'
+
+    fig4.add_trace(fig5.data[0])
+
+    fig4.update_layout(showlegend=True)
+    fig4.update()
 
     return fig4
 
