@@ -3,7 +3,7 @@ import time
 
 arduino_port = "/dev/tty.usbmodem142101"
 baud = 57600
-fileName = "IMUData.csv"
+fileName = "../IMUData.csv"
 
 DATA_POINTS = 2000
 

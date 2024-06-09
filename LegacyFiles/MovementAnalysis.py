@@ -3,7 +3,7 @@ import numpy
 import matplotlib.pyplot as plt
 from scipy import signal
 
-filename = "IMUData.csv"
+filename = "../IMUData.csv"
 plt.rcParams["figure.autolayout"] = True
 df = pd.read_csv(filename)
 print(df.columns)

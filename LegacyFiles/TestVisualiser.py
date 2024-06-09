@@ -5,7 +5,7 @@ import numpy as np
 import plotly.express as px
 
 
-df = pd.read_csv('FrailtyParameters.csv', index_col=0)
+df = pd.read_csv('../FrailtyParameters.csv', index_col=0)
 
 theta = df.columns.tolist()
 
@@ -159,7 +159,7 @@ def linear():
         else:
             yrange = [0, 1]
 
-        fig.update_layout(yaxis_range=yrange)
+        fig.update_layout(yaxis_range=yrange,     font=dict(size=18))
 
         return fig
 

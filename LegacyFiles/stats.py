@@ -14,7 +14,7 @@ import pandas as pd
 # print("t-statistic:", t_statistic)
 # print("p-value:", p_value)
 
-df = pd.read_csv('LongData.csv')
+df = pd.read_csv('../LongData.csv')
 df['change'] = df['Control'].diff()
 
 # Calculate average change
