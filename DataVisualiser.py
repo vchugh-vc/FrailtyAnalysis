@@ -47,7 +47,7 @@ def display_time_series(parameter):
     else:
         yrange = [0, 1]
 
-    fig.update_layout(yaxis_range=yrange)
+    fig.update_layout(yaxis_range=yrange, font=dict(size=18))
 
     fig.update_xaxes(
         rangeslider_visible=True,
@@ -92,7 +92,7 @@ def display_radar(snapshot_1, snapshot_2):
 
     fig2.add_trace(fig3.data[0])
 
-    fig2.update_layout(showlegend=True)
+    fig2.update_layout(showlegend=True, font=dict(size=18))
     fig2.update()
 
     return fig2
@@ -123,7 +123,7 @@ def display_biology(snapshot_1, snapshot_2):
 
     fig4.add_trace(fig5.data[0])
 
-    fig4.update_layout(showlegend=True)
+    fig4.update_layout(showlegend=True, font=dict(size=18))
     fig4.update()
 
     return fig4

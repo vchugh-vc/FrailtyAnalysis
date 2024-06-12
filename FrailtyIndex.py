@@ -8,14 +8,16 @@ formatted_date_time = current_time.strftime("%Y-%m-%d %H:%M:%S")
 
 
 
-file = 'FrailtyParameters.csv'
+# file = 'FrailtyParameters2.csv'
+file = 'LongData.csv'
 
 
 class Frailty:
 
-    def __init__(self, up_data, middle_data):
+    def __init__(self, up_data, middle_data, date=formatted_date_time):
 
         self.UpParameters = up_data.output2
+        self.date = date
         self.MiddleParameters = middle_data.output2
         self.MiddleSPARC = -self.MiddleParameters['SPARC RMS']
         self.MiddlePeakZAcc = self.MiddleParameters['Zpeak']
@@ -66,6 +68,8 @@ class Frailty:
         print(f"{self.MiddleSPARC} SPARC of Movement")
 
     def DataThresholding(self):
+
+        # Thresholding Values for scoring different parameters
 
         if self.UpSPARC < 1:
             self.ScoreData['UpSPARC']['score'] = 1
@@ -133,7 +137,9 @@ class Frailty:
     def Scoring(self):
 
         total = 0
-        scores = [formatted_date_time]
+        scores = [self.date]
+
+        # Total Frailty Score Calculator
 
         for outer_key, inner_dict in self.ScoreData.items():
             total = total + inner_dict['score']
@@ -142,6 +148,8 @@ class Frailty:
         rough_score = 100 * (total / 8)
         FrailtyScore = numpy.round(rough_score, decimals=2)
         self.ScoreData['FrailtyScore']['score'] = FrailtyScore
+
+        # Averages parameters to create score for Strength, Stability, Control
 
         self.ScoreData['Strength']['score'] = (self.ScoreData['MiddleAccZ']['score'] + self.ScoreData['UpAccZ']['score'] + self.ScoreData['UpRoll']['score']) / 3
         self.ScoreData['Stability']['score'] = (self.ScoreData['UpSPARC']['score'] + self.ScoreData['MiddleSPARC']['score'] + self.ScoreData['UpPitch']['score']) / 3

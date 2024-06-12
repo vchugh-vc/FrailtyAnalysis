@@ -103,7 +103,7 @@ class DataTimeWarping:
 
         return [data_range, minimum]
 
-    def Up_Peaks(self,start_point=0,start_range=150):
+    def Up_Peaks(self,start_point=0,start_range=200):
 
         lifting_up_peak = signal.find_peaks(self.AccZ[start_point:start_range], prominence=0.04, height=0.02)
         lifting_down_peak = signal.find_peaks(-self.AccZ[start_point:start_range], prominence=0.04, height=0.01)
@@ -288,14 +288,23 @@ class DataTimeWarping:
 
         self.movement_stamps = [0, self.lifting_up_peak, self.lifting_down_peak, self.DTW_up_end, self.pour_start,
                                 self.down_start, len(self.AccZ)]
+        print(f"Movement Stamps: {self.movement_stamps}")
 
         phase_stamps = [0, self.DTW_up_end, self.pour_start, self.down_start, len(self.AccZ)]
 
-        for point in phase_stamps:
-            plt.axvline(x=point, color='r', linestyle='--')
+        # phase_stamps = [0, 62, 100, 579, 779]
 
-        plt.plot(self.AccZ, label='Z')
-        plt.plot(self.AccX, label='X')
+        for point in phase_stamps:
+            plt.axvline(x=point/104, color='r', linestyle='--')
+
+        x_axis = len(self.AccX)
+        time_array = numpy.arange(x_axis) / 104
+
+        plt.plot(time_array, self.AccZ, label='Z')
+        plt.plot(time_array, self.AccX, label='X')
+        plt.xlabel('Time (seconds)')
+        plt.ylabel('Acceleration (g)')
+        plt.title('Movement Signal of ADL Performance with Segmented Phases')
         plt.legend()
         plt.show()
 

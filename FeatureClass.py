@@ -255,6 +255,7 @@ class DataPreparation:
 
         # creates filtered data based on movement filter
 
+
         self.SMV_Trimmed = self.SMV[movement_start:movement_stop]
         self.AccX_Trimmed = self.AccX[movement_start:movement_stop]
         self.AccY_Trimmed = self.AccY[movement_start:movement_stop]
